@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- SEARCH                                                       -->
+    <!-- ============================================================ -->
+    <record id="view_lab_test_search" model="ir.ui.view">
+        <field name="name">clinic.lab.test.search</field>
+        <field name="model">clinic.lab.test</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <filter name="filter_pending" string="Pending" domain="[('state', '!=', 'done')]"/>
+                <filter name="filter_ready" string="Result Ready" domain="[('state', '=', 'done')]"/>
+                <filter name="filter_urgent" string="Urgent (STAT)" domain="[('priority', '=', 'urgent')]"/>
+                <filter name="filter_abnormal" string="Abnormal Result" domain="[('result_flag', 'in', ('low', 'high'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_patient" string="Patient" context="{'group_by': 'patient_id'}"/>
+                    <filter name="group_doctor" string="Doctor" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- FORM (wine hero + structured result)                         -->
+    <!-- ============================================================ -->
+    <record id="view_lab_test_form" model="ir.ui.view">
+        <field name="name">clinic.lab.test.form</field>
+        <field name="model">clinic.lab.test</field>
+        <field name="arch" type="xml">
+            <form class="lb-form">
+                <header>
+                    <button name="action_start" string="Start Test" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_done" string="Result Ready" type="object" class="btn-success" invisible="state != 'in_progress'"/>
+                    <button name="action_reset" string="Reset to Draft" type="object" invisible="state == 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="lb-hero">
+                        <span class="lb-bubble lb-bubble-1"/>
+                        <span class="lb-bubble lb-bubble-2"/>
+                        <span class="lb-bubble lb-bubble-3"/>
+                        <div class="lb-hero-icon"><i class="fa fa-flask"/></div>
+                        <div class="lb-hero-main">
+                            <h1><field name="name" placeholder="Blood Test / X-Ray"/></h1>
+                            <div class="lb-chips">
+                                <span class="lb-chip"><i class="fa fa-user me-2"/><field name="patient_id" readonly="1" options="{'no_open': True}"/></span>
+                                <span class="lb-chip" invisible="not doctor_id"><i class="fa fa-user-md me-2"/>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/></span>
+                                <span class="lb-chip lb-chip-stat" invisible="priority != 'urgent'"><i class="fa fa-bolt me-1"/>STAT</span>
+                                <span class="lb-chip lb-chip-high" invisible="result_flag != 'high'"><i class="fa fa-arrow-up me-1"/>High</span>
+                                <span class="lb-chip lb-chip-low" invisible="result_flag != 'low'"><i class="fa fa-arrow-down me-1"/>Low</span>
+                                <span class="lb-chip lb-chip-ok" invisible="result_flag != 'normal'"><i class="fa fa-check me-1"/>Normal</span>
+                            </div>
+                        </div>
+                        <div class="lb-hero-val" invisible="result_flag == 'none'">
+                            <span class="lb-hero-num"><field name="result_value" readonly="1"/></span>
+                            <span class="lb-hero-unit"><field name="result_unit" readonly="1"/></span>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Test Info">
+                            <field name="patient_id"/>
+                            <field name="doctor_id"/>
+                            <field name="test_date"/>
+                            <field name="priority"/>
+                        </group>
+                        <group string="Structured Result (optional)">
+                            <field name="result_value"/>
+                            <field name="result_unit" placeholder="g/dL"/>
+                            <field name="ref_min"/>
+                            <field name="ref_max"/>
+                            <field name="result_flag" widget="badge"
+                                   decoration-success="result_flag == 'normal'"
+                                   decoration-danger="result_flag == 'high'"
+                                   decoration-warning="result_flag == 'low'"/>
+                        </group>
+                    </group>
+                    <group string="Result Notes">
+                        <field name="result_notes" nolabel="1" placeholder="Enter test results here..."/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- KANBAN (test cards with range bar)                           -->
+    <!-- ============================================================ -->
+    <record id="view_lab_test_kanban" model="ir.ui.view">
+        <field name="name">clinic.lab.test.kanban</field>
+        <field name="model">clinic.lab.test</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column lb-kanban">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="test_date"/>
+                <field name="state"/>
+                <field name="priority"/>
+                <field name="result_value"/>
+                <field name="result_unit"/>
+                <field name="result_flag"/>
+                <field name="range_pct"/>
+                <field name="ref_label"/>
+                <field name="patient_initials"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="lb-card lb-flag-#{record.result_flag.raw_value}"
+                             t-att-style="'--pos:' + record.range_pct.raw_value + '%'">
+                            <div class="lb-band">
+                                <i class="fa fa-flask lb-icon"/>
+                                <span class="lb-name"><field name="name"/></span>
+                                <span t-if="record.priority.raw_value == 'urgent'" class="lb-stat">STAT</span>
+                            </div>
+                            <div class="lb-body">
+                                <div class="lb-who">
+                                    <span class="lb-av"><field name="patient_initials"/></span>
+                                    <div class="lb-who-text">
+                                        <div class="lb-pat"><field name="patient_id"/></div>
+                                        <div class="lb-doc">
+                                            <t t-if="record.doctor_id.raw_value">Dr. <field name="doctor_id"/> · </t>
+                                            <field name="test_date"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <t t-if="record.result_flag.raw_value != 'none'">
+                                    <div class="lb-result">
+                                        <span class="lb-val"><field name="result_value"/></span>
+                                        <span class="lb-unit"><field name="result_unit"/></span>
+                                        <span class="lb-flag"><field name="result_flag"/></span>
+                                    </div>
+                                    <div class="lb-range"><div class="lb-marker"/></div>
+                                    <div class="lb-ref"><field name="ref_label"/></div>
+                                </t>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- LIST                                                         -->
+    <!-- ============================================================ -->
+    <record id="view_lab_test_list" model="ir.ui.view">
+        <field name="name">clinic.lab.test.list</field>
+        <field name="model">clinic.lab.test</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="result_flag == 'high'" decoration-warning="result_flag == 'low'">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="test_date"/>
+                <field name="priority" widget="badge" decoration-danger="priority == 'urgent'"/>
+                <field name="result_value" optional="show"/>
+                <field name="result_unit" optional="show"/>
+                <field name="result_flag" widget="badge" optional="show"
+                       decoration-success="result_flag == 'normal'"
+                       decoration-danger="result_flag == 'high'"
+                       decoration-warning="result_flag == 'low'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'in_progress'"
+                       decoration-success="state == 'done'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_clinic_lab_test" model="ir.actions.act_window">
+        <field name="name">Lab Tests</field>
+        <field name="res_model">clinic.lab.test</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_lab_test_search"/>
+    </record>
+
+    <menuitem id="menu_clinic_lab" name="Laboratory" parent="menu_clinic_root" action="action_clinic_lab_test" sequence="25"/>
+</odoo>

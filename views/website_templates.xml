@@ -1,0 +1,981 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="website_appointment_form" name="Book Appointment">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Book an Appointment</t>
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+
+            <link rel="preconnect" href="https://fonts.googleapis.com"/>
+            <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"/>
+
+            <style>
+.lg-root{--ink:#0b1020;--ink2:#1b2342;--muted:#596380;--bg:#f3f5ff;--a1:#6d5dfc;--a2:#22d3ee;--a3:#ff6ba6;--a4:#ffb86b;--ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);position:relative;overflow-x:clip;color:var(--ink);background:var(--bg);font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+.lg-root *{box-sizing:border-box}
+.lg-root a{text-decoration:none;color:inherit}
+.lg-root h1,.lg-root h2,.lg-root h3,.lg-root p{margin:0}
+.lg-root section{position:relative}
+.lg-wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+/* ---------- glass ---------- */
+.lg-root .glass{position:relative;overflow:hidden;border-radius:28px;background:linear-gradient(135deg,rgba(255,255,255,.66),rgba(255,255,255,.3));-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border:1px solid rgba(255,255,255,.7);box-shadow:inset 0 1px 1px rgba(255,255,255,.95),inset 0 -1px 1px rgba(255,255,255,.3),0 22px 50px -20px rgba(40,50,120,.4)}
+.lg-root .glass::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:.5;transition:opacity .35s;background:radial-gradient(420px circle at var(--mx,30%) var(--my,0%),rgba(255,255,255,.85),transparent 45%)}
+.lg-root .glass:hover::before{opacity:1}
+.lg-root .glass>*{position:relative}
+.lg-root .glass.dk{color:#fff;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.04));border-color:rgba(255,255,255,.2);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -1px 1px rgba(255,255,255,.05),0 24px 50px -20px rgba(0,0,0,.6)}
+.lg-root .glass.dk::before{background:radial-gradient(420px circle at var(--mx,30%) var(--my,0%),rgba(255,255,255,.22),transparent 45%)}
+
+/* progress + nav */
+.lg-progress{position:fixed;top:0;left:0;width:100%;height:3px;z-index:1100;transform-origin:0 50%;transform:scaleX(var(--p,0));background:linear-gradient(90deg,var(--a2),var(--a1),var(--a3))}
+.lg-nav{position:fixed!important;top:14px;left:50%;transform:translateX(-50%);z-index:1050;display:flex;align-items:center;gap:10px;width:min(1080px,calc(100% - 24px));padding:8px 8px 8px 16px;border-radius:999px!important}
+.lg-brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.02em;white-space:nowrap}
+.lg-brand i{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 8px 18px -6px rgba(109,93,252,.7);animation:beat 2.2s ease-in-out infinite}
+.lg-links{position:relative;display:flex;gap:2px;margin-left:auto;padding:4px;border-radius:999px;background:rgba(255,255,255,.4)}
+.lg-links a{position:relative;z-index:1;padding:8px 14px;border-radius:999px;font-weight:600;font-size:.86rem;color:var(--ink2);white-space:nowrap}
+.lg-lens{position:absolute;top:4px;bottom:4px;left:0;width:0;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 4px 14px rgba(60,70,160,.25),inset 0 1px 0 #fff;transition:transform .6s var(--spring),width .6s var(--spring)}
+.lg-nav-cta{padding:10px 20px!important;font-size:.88rem!important}
+.lg-btn-t{color:#fff!important;background:linear-gradient(135deg,#0f766e,#14b8a6 70%,#5eead4);box-shadow:inset 0 1px 1px rgba(255,255,255,.55),inset 0 -10px 18px rgba(4,60,52,.25),0 14px 30px -8px rgba(13,148,136,.7)}
+.lg-nav-cta{white-space:nowrap}
+.lg-nav-portal .np-s{display:none}
+@media(max-width:575px){.lg-nav-portal .np-l{display:none}.lg-nav-portal .np-s{display:inline}.lg-nav-cta{padding:9px 14px!important;font-size:.8rem!important}.lg-nav-cta .fa-arrow-right{display:none}.lg-nav{gap:6px;padding-left:12px}.lg-brand span{max-width:104px;overflow:hidden;text-overflow:ellipsis}}
+
+/* buttons */
+.lg-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px 28px;border-radius:999px;border:0;font-weight:700;font-size:1rem;cursor:pointer;position:relative;overflow:hidden;transition:transform .5s var(--spring),box-shadow .3s,filter .3s;will-change:transform}
+.lg-btn::after{content:"";position:absolute;top:0;bottom:0;left:-70%;width:40%;transform:skewX(-20deg);background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);transition:left .9s var(--ease)}
+.lg-btn:hover::after{left:140%}
+.lg-btn:hover{transform:translateY(-3px) scale(1.04)}
+.lg-btn:active{transform:scale(.93,.9);transition-duration:.15s}
+.lg-btn-p{color:#fff!important;background:linear-gradient(135deg,#8576ff,#4f46e5 55%,#22b8f0);box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -10px 18px rgba(30,20,120,.28),0 16px 34px -8px rgba(79,70,229,.65)}
+.lg-btn-g{color:var(--ink);background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(18px) saturate(180%);backdrop-filter:blur(18px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:inset 0 1px 1px #fff,0 12px 26px -10px rgba(40,50,120,.35)}
+.lg-btn-w{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);box-shadow:inset 0 1px 1px rgba(255,255,255,.4)}
+
+/* ---------- hero ---------- */
+.lg-hero{position:relative;min-height:100vh;display:grid;align-items:center;padding:130px 24px 90px;overflow:hidden}
+.lg-goo{position:absolute;inset:0;filter:url(#lg-goo);pointer-events:none;z-index:0}
+.lg-blob{position:absolute;border-radius:50%;opacity:.7}
+.lg-blob.b1{width:440px;height:440px;background:var(--a1);left:4%;top:8%;animation:fl1 17s ease-in-out infinite}
+.lg-blob.b2{width:360px;height:360px;background:var(--a2);right:8%;top:6%;animation:fl2 19s ease-in-out infinite}
+.lg-blob.b3{width:400px;height:400px;background:var(--a3);right:22%;bottom:-6%;animation:fl3 21s ease-in-out infinite}
+.lg-blob.b4{width:300px;height:300px;background:var(--a4);left:18%;bottom:2%;animation:fl2 15s ease-in-out infinite reverse}
+.lg-blob.b5{width:170px;height:170px;background:#fff;left:0;top:0;opacity:.9;transition:transform .12s linear;will-change:transform}
+.lg-hero::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(900px 520px at 30% 45%,rgba(243,245,255,.82),transparent 70%)}
+.lg-hero-in{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+.lg-pill{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;font-size:.82rem;font-weight:700;color:var(--ink2);background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 1px 1px #fff,0 8px 20px -10px rgba(40,50,120,.4)}
+.lg-pill i{font-size:.5rem;color:#22c55e;animation:ping 1.8s infinite}
+.lg-h1{margin:22px 0 20px!important;font-size:clamp(2.7rem,6.3vw,5.5rem);line-height:1.02;letter-spacing:-.045em;font-weight:800}
+.lg-h1 .w{display:inline-block;opacity:0;transform:translateY(.55em) rotateX(45deg);filter:blur(10px);animation:win 1s var(--ease) forwards;animation-delay:calc(var(--i)*90ms + 250ms)}
+.lg-h1 .grad,.lg-grad{background:linear-gradient(100deg,var(--a1),var(--a3),var(--a4),var(--a2),var(--a1));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.lg-h1 .grad{animation:win 1s var(--ease) forwards,gshift 7s linear infinite;animation-delay:calc(var(--i)*90ms + 250ms),0s}
+.lg-lead{max-width:520px;font-size:1.2rem;color:var(--muted)}
+.lg-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:30px}
+.lg-trust{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:34px;font-size:.86rem;font-weight:600;color:var(--ink2)}
+.lg-trust span{display:flex;align-items:center;gap:8px}
+.lg-trust i{color:var(--a1)}
+.lg-scroll{position:absolute;z-index:3;left:50%;bottom:26px;transform:translateX(-50%);width:26px;height:42px;border-radius:14px;border:2px solid rgba(11,16,32,.35)}
+.lg-scroll::after{content:"";position:absolute;left:50%;top:8px;width:4px;height:8px;margin-left:-2px;border-radius:4px;background:var(--ink);animation:wheel 1.8s infinite}
+
+/* hero stage */
+.lg-stage{position:relative;height:540px}
+.lg-stage .px{position:absolute;transform:translate3d(0,var(--py,0px),0);will-change:transform}
+.lg-stage .glass{padding:20px 22px;animation:bob 7s ease-in-out infinite}
+.c-live{left:0;top:10px;width:290px}
+.c-ok{right:0;top:150px;width:280px}.c-ok .glass{animation-delay:-2s}
+.c-ecg{left:30px;bottom:20px;width:260px}.c-ecg .glass{animation-delay:-4s;padding:14px 18px}
+.c-chip{right:30px;bottom:10px}.c-chip .glass{border-radius:999px;padding:12px 20px;animation-delay:-1s;font-weight:700;font-size:.85rem;display:flex;gap:10px;align-items:center}
+.lg-card-h{display:flex;align-items:center;gap:8px;font-weight:800;font-size:.9rem;margin-bottom:12px}
+.lg-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+.lg-row small{display:block;color:var(--muted);font-size:.75rem}
+.lg-row b{font-size:.9rem}
+.lg-row .lg-dot{margin-left:auto}
+.lg-mini{flex:none;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-weight:800;color:#fff;background:linear-gradient(135deg,hsl(var(--h,260) 80% 60%),hsl(calc(var(--h,260) + 50) 85% 62%))}
+.lg-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#94a3b8;flex:none}
+.lg-dot.on{background:#22c55e;animation:ping 1.8s infinite}
+.lg-tick{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:1.2rem;background:linear-gradient(135deg,#34d399,#10b981);box-shadow:0 10px 20px -8px rgba(16,185,129,.8)}
+.c-ok h4{margin:12px 0 2px;font-size:1.05rem;font-weight:800}.c-ok p{font-size:.82rem;color:var(--muted)}
+.lg-ecg{width:100%;height:46px;display:block}
+.lg-ecg path{fill:none;stroke:var(--a1);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:420;stroke-dashoffset:420;animation:ecg 3s linear infinite}
+
+/* marquee */
+.lg-marq{overflow:hidden;padding:22px 0 34px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.lg-track{display:flex;gap:16px;width:max-content;animation:marq 34s linear infinite}
+.lg-marq:hover .lg-track{animation-play-state:paused}
+.lg-chip{display:flex;align-items:center;gap:12px;padding:14px 26px;border-radius:999px!important;font-weight:700;white-space:nowrap}
+.lg-chip i{color:var(--a1)}
+
+/* sections */
+.lg-sec{padding:100px 0}
+.lg-eyebrow{display:inline-block;padding:6px 16px;border-radius:999px;font-size:.76rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--a1);background:rgba(109,93,252,.1)}
+.lg-h2{margin-top:16px!important;font-size:clamp(2.1rem,4.6vw,3.6rem);line-height:1.04;letter-spacing:-.04em;font-weight:800}
+.lg-sub{margin-top:16px!important;max-width:560px;font-size:1.1rem;color:var(--muted)}
+.lg-head{text-align:center;margin-bottom:54px}.lg-head .lg-sub{margin-left:auto;margin-right:auto}
+
+/* bento */
+.lg-bento{display:grid;grid-template-columns:repeat(6,1fr);gap:18px}
+.lg-tile{padding:30px;min-height:230px;display:flex;flex-direction:column;transition:transform .6s var(--spring)}
+.lg-tile:hover{transform:translateY(-6px) scale(1.012)}
+.lg-tile h3{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;margin:16px 0 8px}
+.lg-tile p{color:var(--muted);font-size:.95rem}
+.lg-ico{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:1.35rem;color:#fff;background:linear-gradient(135deg,var(--g1,#6d5dfc),var(--g2,#22d3ee));box-shadow:0 12px 24px -10px var(--g1,#6d5dfc)}
+.t1{grid-column:span 3}.t2{grid-column:span 3}.t3,.t4,.t5{grid-column:span 2}.t6{grid-column:span 6;min-height:0;flex-direction:row;align-items:center;gap:26px}
+.t6 h3{margin-top:0}
+.lg-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:18px}
+.lg-slots span{padding:8px 16px;border-radius:999px;font-weight:700;font-size:.85rem;background:rgba(255,255,255,.7);border:1px solid rgba(109,93,252,.25);color:#3b34b8}
+.lg-slots span.sel{color:#fff;border-color:transparent;background:linear-gradient(135deg,#8576ff,#4f46e5);animation:selp 2.4s ease-in-out infinite}
+.lg-lines{margin-top:auto;padding-top:18px;display:grid;gap:8px}
+.lg-lines i{display:block;height:10px;border-radius:10px;background:linear-gradient(90deg,rgba(109,93,252,.25),rgba(34,211,238,.25));animation:lineg 3s ease-in-out infinite}
+.lg-lines i:nth-child(2){width:78%;animation-delay:.3s}.lg-lines i:nth-child(3){width:55%;animation-delay:.6s}
+.lg-bell{animation:ring 3s ease-in-out infinite;transform-origin:50% 10%}
+.lg-led{margin-top:auto;align-self:flex-start;padding:10px 20px;border-radius:14px;background:#05090d;color:#3ef0b0;font-family:"Courier New",monospace;font-weight:800;font-size:1.5rem;letter-spacing:.08em;text-shadow:0 0 12px rgba(62,240,176,.8);animation:led 2.4s ease-in-out infinite}
+
+/* doctors */
+.lg-dark{margin:0 14px;border-radius:46px;color:#fff;padding:100px 0;overflow:hidden;background:radial-gradient(900px 520px at 12% 0%,rgba(109,93,252,.5),transparent 60%),radial-gradient(800px 520px at 92% 100%,rgba(34,211,238,.3),transparent 60%),radial-gradient(600px 400px at 60% 40%,rgba(255,107,166,.18),transparent 60%),#0b1020}
+.lg-dark .lg-sub{color:rgba(255,255,255,.7)}.lg-dark .lg-eyebrow{color:#a5b4fc;background:rgba(255,255,255,.1)}
+.lg-dhead{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:38px;flex-wrap:wrap}
+.lg-arrows{display:flex;gap:10px}
+.lg-arrow{width:52px;height:52px;border-radius:50%;border:1px solid rgba(255,255,255,.25);color:#fff;background:rgba(255,255,255,.1);cursor:pointer;font-size:1rem;transition:transform .5s var(--spring),background .3s;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.lg-arrow:hover{transform:scale(1.12);background:rgba(255,255,255,.22)}.lg-arrow:active{transform:scale(.9)}
+.lg-rail{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;padding:20px 24px 40px;scrollbar-width:none;margin:0 auto;max-width:1180px;perspective:1100px}
+.lg-rail::-webkit-scrollbar{display:none}
+.lg-doc{flex:0 0 290px;scroll-snap-align:center;padding:30px 26px 26px;text-align:center;border-radius:32px!important;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .35s var(--ease)}
+.lg-av{width:96px;height:96px;margin:0 auto 18px;border-radius:50%;display:grid;place-items:center;font-size:2.2rem;font-weight:800;color:#fff;background:linear-gradient(135deg,hsl(var(--h,260) 80% 58%),hsl(calc(var(--h,260) + 55) 85% 62%));box-shadow:0 0 0 6px rgba(255,255,255,.12),0 18px 34px -10px hsl(var(--h,260) 80% 50%);position:relative}
+.lg-av.on::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid #3ef0b0;animation:ripple 2.2s ease-out infinite}
+.lg-doc h3{font-size:1.25rem;font-weight:800}
+.lg-spec{display:inline-block;margin:10px 0;padding:4px 14px;border-radius:999px;font-size:.78rem;font-weight:700;background:rgba(255,255,255,.14)}
+.lg-avail{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.85rem;color:rgba(255,255,255,.75);margin-bottom:6px}
+.lg-fee{font-size:.85rem;color:rgba(255,255,255,.6);margin-bottom:18px}
+.lg-doc .lg-btn{width:100%;padding:13px 20px;font-size:.92rem}
+.lg-empty{padding:40px;text-align:center;color:rgba(255,255,255,.7)}
+
+/* how it works */
+.lg-how{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px;align-items:start}
+.lg-sticky{position:sticky;top:120px}
+.lg-tl{position:relative;padding-left:74px}
+.lg-tl-line{position:absolute;left:25px;top:12px;bottom:12px;width:4px;border-radius:4px;background:rgba(109,93,252,.15)}
+.lg-tl-fill{position:absolute;left:0;top:0;width:100%;height:calc(var(--hp,0)*100%);border-radius:4px;background:linear-gradient(180deg,var(--a2),var(--a1),var(--a3));box-shadow:0 0 16px rgba(109,93,252,.6)}
+.lg-step{position:relative;padding:26px 28px;margin-bottom:22px}
+.lg-step .n{position:absolute;left:-74px;top:22px;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:1.15rem;color:var(--a1);background:#fff;border:3px solid rgba(109,93,252,.2);box-shadow:0 10px 22px -8px rgba(109,93,252,.5);transition:all .6s var(--spring)}
+.lg-step.in .n{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--a1),var(--a2));transform:scale(1.1)}
+.lg-step h3{font-size:1.25rem;font-weight:800;margin-bottom:6px}.lg-step p{color:var(--muted)}
+
+/* booking */
+.lg-book{padding:110px 0;background:radial-gradient(700px 500px at 10% 10%,rgba(109,93,252,.28),transparent 60%),radial-gradient(700px 500px at 95% 30%,rgba(34,211,238,.28),transparent 60%),radial-gradient(700px 500px at 50% 100%,rgba(255,107,166,.22),transparent 60%),var(--bg);background-size:140% 140%;animation:mesh 20s ease-in-out infinite}
+.lg-book-in{display:grid;grid-template-columns:.85fr 1.15fr;gap:50px;align-items:start}
+.lg-checks{margin-top:30px;display:grid;gap:14px}
+.lg-checks div{display:flex;align-items:center;gap:14px;font-weight:600;color:var(--ink2)}
+.lg-checks i{flex:none;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#34d399,#10b981)}
+.lg-formcard{padding:36px 34px;border-radius:36px!important}
+.lg-formcard h3{font-size:1.6rem;font-weight:800;letter-spacing:-.025em}
+.lg-steps{display:flex;gap:8px;margin:18px 0 22px}
+.lg-steps .ap-step{flex:1;height:8px;border-radius:8px;background:rgba(109,93,252,.14);overflow:hidden;position:relative}
+.lg-steps .ap-step::after{content:"";position:absolute;inset:0;transform:scaleX(0);transform-origin:0 50%;border-radius:8px;background:linear-gradient(90deg,var(--a1),var(--a2));transition:transform .7s var(--spring)}
+.lg-steps .ap-step.done::after{transform:scaleX(1)}
+.lg-form .form-control,.lg-form .form-select{height:62px;border-radius:18px;border:1px solid rgba(255,255,255,.9);background-color:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);box-shadow:inset 0 1px 2px rgba(60,70,160,.08),0 4px 12px -6px rgba(40,50,120,.2);transition:box-shadow .3s,transform .4s var(--spring),border-color .3s}
+.lg-form .form-control:focus,.lg-form .form-select:focus{border-color:rgba(109,93,252,.7);box-shadow:0 0 0 5px rgba(109,93,252,.18),0 12px 26px -10px rgba(109,93,252,.45);transform:translateY(-2px);background-color:rgba(255,255,255,.9)}
+.lg-form .form-floating>label{color:var(--muted);padding-left:18px}
+.lg-form .form-floating>.form-control,.lg-form .form-floating>.form-select{padding-left:18px}
+.lg-form .cl-slot{border-radius:999px!important;border:1px solid rgba(109,93,252,.35)!important;color:#3b34b8!important;background:rgba(255,255,255,.75)!important;font-weight:700;padding:8px 18px;transition:transform .45s var(--spring),box-shadow .3s}
+.lg-form .cl-slot:hover{transform:translateY(-3px) scale(1.07)}
+.lg-form .cl-slot.btn-primary{color:#fff!important;border-color:transparent!important;background:linear-gradient(135deg,#8576ff,#4f46e5)!important;box-shadow:0 10px 20px -8px rgba(79,70,229,.7)}
+.lg-form #apSlots{min-height:6px}
+.lg-submit{width:100%;margin-top:8px;font-size:1.05rem;padding:18px}
+.lg-submit.is-loading{pointer-events:none;filter:saturate(.7)}
+.lg-submit.is-loading i{animation:spin .8s linear infinite}
+.lg-note{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;margin-top:18px;font-size:.8rem;font-weight:600;color:var(--muted)}
+.lg-note i{color:var(--a1);margin-right:6px}
+.lg-flash{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:20px;margin-bottom:18px;font-weight:600;animation:win .7s var(--ease) both}
+.lg-flash.err{background:rgba(254,226,226,.8);border:1px solid #fca5a5;color:#991b1b}
+.lg-flash.ok{background:rgba(209,250,229,.85);border:1px solid #6ee7b7;color:#065f46}
+.lg-check{flex:none;width:44px;height:44px}
+.lg-check circle{fill:none;stroke:#10b981;stroke-width:4;stroke-dasharray:140;stroke-dashoffset:140;animation:draw 1s var(--ease) forwards}
+.lg-check path{fill:none;stroke:#10b981;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:draw .6s .7s var(--ease) forwards}
+
+/* faq */
+.lg-faq{max-width:820px;margin:0 auto;display:grid;gap:14px}
+.lg-fq{border-radius:24px!important}
+.lg-fq button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 26px;border:0;background:none;text-align:left;font-weight:700;font-size:1.05rem;color:var(--ink);cursor:pointer}
+.lg-fq button i{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(109,93,252,.12);color:var(--a1);transition:transform .6s var(--spring)}
+.lg-fq.open button i{transform:rotate(135deg)}
+.lg-fa{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s var(--ease)}
+.lg-fq.open .lg-fa{grid-template-rows:1fr}
+.lg-fa>div{overflow:hidden}.lg-fa p{padding:0 26px 24px;color:var(--muted)}
+
+/* footer */
+.lg-foot{margin:0 14px 14px;border-radius:46px;padding:64px 0 34px;color:rgba(255,255,255,.75);background:radial-gradient(700px 400px at 10% 0%,rgba(109,93,252,.4),transparent 60%),#0b1020}
+.lg-foot-g{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px}
+.lg-foot h4{color:#fff;font-weight:800;font-size:1rem;margin:0 0 16px}
+.lg-foot a{display:block;margin-bottom:10px;opacity:.8;transition:opacity .3s,transform .4s var(--spring)}.lg-foot a:hover{opacity:1;transform:translateX(4px)}
+.lg-foot .lg-brand{color:#fff;margin-bottom:14px}
+.lg-copy{margin-top:44px;padding-top:24px;border-top:1px solid rgba(255,255,255,.12);font-size:.85rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+/* floating book pill */
+.lg-float{position:fixed;left:50%;bottom:22px;z-index:1040;transform:translate(-50%,140px);opacity:0;transition:transform .7s var(--spring),opacity .4s}
+.lg-float.show{transform:translate(-50%,0);opacity:1}
+.lg-float .lg-btn{padding:14px 26px}
+
+/* reveal (animation based, so hover/tilt transforms keep working afterwards) */
+.lg-root.js .rv{opacity:0}
+.lg-root.js .rv.in{opacity:1;animation:rvin .9s var(--ease) backwards;animation-delay:calc(var(--d,0)*90ms)}
+.lg-root.js .glass.rv.in{animation-name:rvin2}
+@keyframes rvin{from{opacity:0;transform:translateY(44px) scale(.97);filter:blur(10px)}}
+@keyframes rvin2{from{opacity:0;transform:translateY(44px) scale(.97)}}
+
+/* keyframes */
+@keyframes win{to{opacity:1;transform:none;filter:none}}
+@keyframes gshift{to{background-position:300% 0}}
+@keyframes fl1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(120px,70px) scale(1.15)}}
+@keyframes fl2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-110px,90px) scale(.9)}}
+@keyframes fl3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-90px,-80px) scale(1.2)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes beat{0%,60%,100%{transform:scale(1)}15%{transform:scale(1.14)}30%{transform:scale(1)}45%{transform:scale(1.1)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 9px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+@keyframes ripple{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}
+@keyframes wheel{0%{opacity:0;transform:translateY(0)}30%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
+@keyframes ecg{0%{stroke-dashoffset:420}70%,100%{stroke-dashoffset:0}}
+@keyframes marq{to{transform:translateX(-50%)}}
+@keyframes selp{0%,100%{box-shadow:0 0 0 0 rgba(109,93,252,.5)}50%{box-shadow:0 0 0 9px rgba(109,93,252,0)}}
+@keyframes lineg{0%,100%{opacity:.5}50%{opacity:1}}
+@keyframes ring{0%,70%,100%{transform:rotate(0)}74%{transform:rotate(14deg)}78%{transform:rotate(-12deg)}82%{transform:rotate(9deg)}86%{transform:rotate(-6deg)}90%{transform:rotate(3deg)}}
+@keyframes led{0%,100%{text-shadow:0 0 8px rgba(62,240,176,.6)}50%{text-shadow:0 0 18px rgba(62,240,176,1)}}
+@keyframes mesh{0%,100%{background-position:0% 0%}50%{background-position:100% 100%}}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* responsive */
+@media(max-width:991px){
+.lg-links{display:none}.lg-nav{justify-content:space-between}
+.lg-hero-in,.lg-how,.lg-book-in,.lg-foot-g{grid-template-columns:1fr}
+.lg-stage{height:430px;margin-top:10px}.c-live{width:250px}.c-ok{width:240px;top:170px}
+.lg-sticky{position:static}
+.lg-bento{grid-template-columns:1fr 1fr}.t1,.t2,.t3,.t4,.t5,.t6{grid-column:span 2}.t6{flex-direction:column;align-items:flex-start}
+.lg-sec,.lg-dark,.lg-book{padding:72px 0}
+.lg-formcard{padding:26px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+.lg-root *,.lg-root *::before,.lg-root *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+.lg-root.js .rv,.lg-h1 .w{opacity:1!important}.lg-h1 .w{transform:none!important;filter:none!important}
+}
+
+.lg-root section,.lg-root header,.lg-root footer{scroll-margin-top:84px}
+
+/* ---------- performance: same look, far less GPU/CPU work ---------- */
+/* 1. SVG "goo" filter re-rasterised every frame -> cheap cached blur on each blob */
+.lg-goo{filter:none}
+.lg-blob{filter:blur(30px);will-change:transform}
+/* 2. no backdrop-filter on things that move all the time (it would re-blur every frame) */
+.lg-stage .glass,.lg-marq .lg-chip,.lg-doc.glass{-webkit-backdrop-filter:none;backdrop-filter:none}
+.lg-stage .glass,.lg-marq .lg-chip{background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(255,255,255,.62))}
+
+
+            </style>
+
+            <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+                <defs>
+                    <filter id="lg-goo">
+                        <feGaussianBlur in="SourceGraphic" stdDeviation="22" result="b"/>
+                        <feColorMatrix in="b" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -9"/>
+                    </filter>
+                </defs>
+            </svg>
+
+            <div class="lg-root" id="lgRoot">
+                <div class="lg-progress"></div>
+
+                <!-- ============ NAV ============ -->
+                <nav class="lg-nav glass" id="lgNav">
+                    <a class="lg-brand" href="#home">
+                        <i class="fa fa-heartbeat"></i>
+                        <span t-out="request.env.company.name or 'Clinic'"/>
+                    </a>
+                    <div class="lg-links" id="lgLinks">
+                        <span class="lg-lens" id="lgLens"></span>
+                        <a href="#home">Home</a>
+                        <a href="#why">Why us</a>
+                        <a href="#doctors">Doctors</a>
+                        <a href="#how">How it works</a>
+                        <a href="#faq">FAQ</a>
+                    </div>
+                    <a class="lg-btn lg-btn-t lg-nav-cta lg-nav-portal" href="/clinic/login" title="Patient portal: your appointments, prescriptions and invoices">
+                        <i class="fa fa-user-circle-o"></i>
+                        <t t-if="request.env.user._is_public()"><span class="np-l">Patient login</span><span class="np-s">Login</span></t><t t-else=""><span>My Clinic</span></t>
+                    </a>
+                    <a class="lg-btn lg-btn-p lg-magnetic lg-nav-cta" href="#book">Book now <i class="fa fa-arrow-right"></i></a>
+                </nav>
+
+                <!-- ============ HERO ============ -->
+                <header class="lg-hero" id="home">
+                    <div class="lg-goo" aria-hidden="true">
+                        <span class="lg-blob b1"></span>
+                        <span class="lg-blob b2"></span>
+                        <span class="lg-blob b3"></span>
+                        <span class="lg-blob b4"></span>
+                        <span class="lg-blob b5" id="lgCursor"></span>
+                    </div>
+
+                    <div class="lg-hero-in">
+                        <div class="lg-hero-copy">
+                            <span class="lg-pill rv"><i class="fa fa-circle"></i>Live slots · Instant online booking</span>
+                            <h1 class="lg-h1">
+                                <span class="w" style="--i:0">Healthcare</span>
+                                <span class="w" style="--i:1">that</span>
+                                <span class="w" style="--i:2">feels</span>
+                                <span class="w grad" style="--i:3">effortless.</span>
+                            </h1>
+                            <p class="lg-lead rv" style="--d:3">Choose your doctor, see real-time free slots and book in under a minute. No phone calls, no waiting on hold.</p>
+                            <div class="lg-cta rv" style="--d:4">
+                                <a class="lg-btn lg-btn-p lg-magnetic" href="#book"><i class="fa fa-calendar-check-o"></i>Book appointment</a>
+                                <a class="lg-btn lg-btn-g lg-magnetic" href="#doctors"><i class="fa fa-user-md"></i>Meet our doctors</a>
+                                <a class="lg-btn lg-btn-t lg-magnetic" href="/clinic/login"><i class="fa fa-user-circle-o"></i><t t-if="request.env.user._is_public()">Patient login</t><t t-else="">My Clinic</t></a>
+                            </div>
+                            <div class="lg-trust rv" style="--d:5">
+                                <span><i class="fa fa-bolt"></i>Instant request</span>
+                                <span><i class="fa fa-envelope-o"></i>Email reminders</span>
+                                <span><i class="fa fa-lock"></i>Private and secure</span>
+                            </div>
+                        </div>
+
+                        <div class="lg-stage" aria-hidden="true">
+                            <div class="px c-live" data-speed="-0.07">
+                                <div class="glass tilt">
+                                    <div class="lg-card-h"><span class="lg-dot on"></span>Doctors today</div>
+                                    <t t-foreach="doctors[:3]" t-as="d">
+                                        <div class="lg-row">
+                                            <span class="lg-mini" t-attf-style="--h:#{(d.id * 47) % 360}"><t t-out="d.name[:1].upper()"/></span>
+                                            <div><b>Dr. <t t-out="d.name"/></b><small t-out="d.availability_label"/></div>
+                                            <span t-attf-class="lg-dot #{'on' if d.available_now else ''}"></span>
+                                        </div>
+                                    </t>
+                                    <div t-if="not doctors" class="lg-row"><small>Our doctors will appear here soon.</small></div>
+                                </div>
+                            </div>
+                            <div class="px c-ok" data-speed="0.05">
+                                <div class="glass tilt">
+                                    <span class="lg-tick"><i class="fa fa-check"></i></span>
+                                    <h4>Appointment confirmed</h4>
+                                    <p>Pick a time, we handle the rest. A reminder email is sent the day before.</p>
+                                </div>
+                            </div>
+                            <div class="px c-ecg" data-speed="-0.03">
+                                <div class="glass">
+                                    <svg class="lg-ecg" viewBox="0 0 300 46" preserveAspectRatio="none"><path d="M0 24 H80 L92 24 L100 6 L112 42 L122 24 H180 L190 24 L198 12 L206 32 L214 24 H300"/></svg>
+                                </div>
+                            </div>
+                            <div class="px c-chip" data-speed="0.09">
+                                <div class="glass"><i class="fa fa-bell" style="color:#f59e0b"></i>Reminder sent</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="#why" class="lg-scroll" aria-label="Scroll down"></a>
+                </header>
+
+                <!-- ============ MARQUEE ============ -->
+                <div class="lg-marq" aria-hidden="true">
+                    <div class="lg-track">
+                        <t t-foreach="range(2)" t-as="rep">
+                            <span class="lg-chip glass"><i class="fa fa-stethoscope"></i>General Physician</span>
+                            <span class="lg-chip glass"><i class="fa fa-heart"></i>Cardiologist</span>
+                            <span class="lg-chip glass"><i class="fa fa-magic"></i>Dermatologist</span>
+                            <span class="lg-chip glass"><i class="fa fa-child"></i>Pediatrician</span>
+                            <span class="lg-chip glass"><i class="fa fa-wheelchair"></i>Orthopedist</span>
+                            <span class="lg-chip glass"><i class="fa fa-flask"></i>Laboratory</span>
+                            <span class="lg-chip glass"><i class="fa fa-medkit"></i>Pharmacy</span>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- ============ WHY US ============ -->
+                <section class="lg-sec" id="why">
+                    <div class="lg-wrap">
+                        <div class="lg-head">
+                            <span class="lg-eyebrow rv">Why choose us</span>
+                            <h2 class="lg-h2 rv" style="--d:1">Care that works <span class="lg-grad">around your life</span></h2>
+                            <p class="lg-sub rv" style="--d:2">Everything you need, from the first booking to the follow-up, in one calm and simple place.</p>
+                        </div>
+
+                        <div class="lg-bento">
+                            <div class="lg-tile glass t1 rv">
+                                <span class="lg-ico"><i class="fa fa-clock-o"></i></span>
+                                <h3>Live availability</h3>
+                                <p>Only free times are shown, so there is never a double booking.</p>
+                                <div class="lg-slots"><span>09:00</span><span>09:30</span><span class="sel">10:00</span><span>10:30</span><span>11:00</span></div>
+                            </div>
+                            <div class="lg-tile glass t2 rv" style="--d:1">
+                                <span class="lg-ico" style="--g1:#ff6ba6;--g2:#ffb86b"><i class="fa fa-user-circle"></i></span>
+                                <h3>Your own patient portal</h3>
+                                <p>See appointments, prescriptions and invoices anytime, and cancel with one tap.</p>
+                                <div class="lg-lines"><i></i><i></i><i></i></div>
+                            </div>
+                            <div class="lg-tile glass t3 rv" style="--d:2">
+                                <span class="lg-ico" style="--g1:#f59e0b;--g2:#fbbf24"><i class="fa fa-bell lg-bell"></i></span>
+                                <h3>Smart reminders</h3>
+                                <p>A friendly email the day before, so you never miss a visit.</p>
+                            </div>
+                            <div class="lg-tile glass t4 rv" style="--d:3">
+                                <span class="lg-ico" style="--g1:#10b981;--g2:#22d3ee"><i class="fa fa-ticket"></i></span>
+                                <h3>Digital queue</h3>
+                                <p>Check in and get a token. No crowded waiting rooms.</p>
+                                <div class="lg-led">T-012</div>
+                            </div>
+                            <div class="lg-tile glass t5 rv" style="--d:4">
+                                <span class="lg-ico" style="--g1:#6366f1;--g2:#8b5cf6"><i class="fa fa-lock"></i></span>
+                                <h3>Private and secure</h3>
+                                <p>Your health information is used only for your care.</p>
+                            </div>
+                            <div class="lg-tile glass t6 rv">
+                                <span class="lg-ico" style="--g1:#22d3ee;--g2:#6d5dfc"><i class="fa fa-refresh"></i></span>
+                                <div>
+                                    <h3>Plans change. We get it.</h3>
+                                    <p>Need a different time? Cancel from your portal and book a new slot in seconds, no phone call needed.</p>
+                                </div>
+                                <a class="lg-btn lg-btn-p lg-magnetic" href="#book" style="margin-left:auto;white-space:nowrap">Book a visit <i class="fa fa-arrow-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ DOCTORS ============ -->
+                <section class="lg-dark" id="doctors">
+                    <div class="lg-wrap">
+                        <div class="lg-dhead">
+                            <div>
+                                <span class="lg-eyebrow rv">Our team</span>
+                                <h2 class="lg-h2 rv" style="--d:1">Meet the <span class="lg-grad">specialists</span></h2>
+                                <p class="lg-sub rv" style="--d:2"><b style="color:#fff;font-size:1.3em" data-count="0" t-att-data-count="len(doctors)">0</b> doctors ready to take care of you. Tap any card to book.</p>
+                            </div>
+                            <div class="lg-arrows rv">
+                                <button class="lg-arrow" data-rail="-1" aria-label="Previous"><i class="fa fa-chevron-left"></i></button>
+                                <button class="lg-arrow" data-rail="1" aria-label="Next"><i class="fa fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg-rail" id="lgRail">
+                        <t t-foreach="doctors" t-as="doctor">
+                            <article class="lg-doc glass dk tilt rv" t-att-style="'--d:' + str(doctor_index)">
+                                <div t-attf-class="lg-av #{'on' if doctor.available_now else ''}" t-attf-style="--h:#{(doctor.id * 47) % 360}">
+                                    <t t-out="doctor.name[:1].upper()"/>
+                                </div>
+                                <h3>Dr. <t t-out="doctor.name"/></h3>
+                                <span class="lg-spec" t-out="dict(doctor._fields['specialty'].selection).get(doctor.specialty, '')"/>
+                                <div class="lg-avail">
+                                    <span t-attf-class="lg-dot #{'on' if doctor.available_now else ''}"></span>
+                                    <span t-out="doctor.availability_label"/>
+                                </div>
+                                <div class="lg-fee" t-if="doctor.consultation_fee">
+                                    Consultation <b><t t-out="request.env.company.currency_id.symbol"/> <t t-out="int(doctor.consultation_fee)"/></b>
+                                </div>
+                                <button type="button" class="lg-btn lg-btn-w lg-magnetic" t-att-data-doctor="doctor.id">
+                                    Book with Dr. <t t-out="doctor.name.split(' ')[0]"/> <i class="fa fa-arrow-right"></i>
+                                </button>
+                            </article>
+                        </t>
+                        <div t-if="not doctors" class="lg-empty">Our doctors will be listed here very soon.</div>
+                    </div>
+                </section>
+
+                <!-- ============ HOW IT WORKS ============ -->
+                <section class="lg-sec" id="how">
+                    <div class="lg-wrap lg-how">
+                        <div class="lg-sticky">
+                            <span class="lg-eyebrow rv">How it works</span>
+                            <h2 class="lg-h2 rv" style="--d:1">Four easy steps to <span class="lg-grad">feeling better</span></h2>
+                            <p class="lg-sub rv" style="--d:2">We took the hassle out of booking so you can focus on what matters, your health.</p>
+                            <a class="lg-btn lg-btn-p lg-magnetic rv" style="--d:3;margin-top:28px" href="#book">Start now <i class="fa fa-arrow-right"></i></a>
+                        </div>
+                        <div class="lg-tl" id="howTl">
+                            <div class="lg-tl-line"><div class="lg-tl-fill"></div></div>
+                            <div class="lg-step glass rv"><span class="n">1</span><h3>Choose your doctor</h3><p>Browse our specialists and pick the one that fits your needs.</p></div>
+                            <div class="lg-step glass rv"><span class="n">2</span><h3>Pick a free time</h3><p>Select a date and see only the slots that are really available.</p></div>
+                            <div class="lg-step glass rv"><span class="n">3</span><h3>Confirm your details</h3><p>Add your name, email and phone, then send your request in one tap.</p></div>
+                            <div class="lg-step glass rv"><span class="n">4</span><h3>Get reminded and visit</h3><p>We email a reminder the day before. Check in and you will get a queue token.</p></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ BOOKING ============ -->
+                <section class="lg-book" id="book">
+                    <div class="lg-wrap lg-book-in">
+                        <div>
+                            <span class="lg-eyebrow rv">Book online</span>
+                            <h2 class="lg-h2 rv" style="--d:1">Reserve your <span class="lg-grad">visit</span></h2>
+                            <p class="lg-sub rv" style="--d:2">It takes less than a minute. We will confirm your appointment by email.</p>
+                            <div class="lg-checks">
+                                <div class="rv" style="--d:3"><i class="fa fa-check"></i>See only real, free time slots</div>
+                                <div class="rv" style="--d:4"><i class="fa fa-check"></i>No account needed to book</div>
+                                <div class="rv" style="--d:5"><i class="fa fa-check"></i>Reminder email before your visit</div>
+                                <div class="rv" style="--d:6"><i class="fa fa-check"></i>Your details stay private</div>
+                            </div>
+                        </div>
+
+                        <div class="lg-formcard glass rv" style="--d:2">
+                            <h3>Book an appointment</h3>
+                            <div class="lg-steps" aria-hidden="true">
+                                <div class="ap-step" id="apStep1"></div>
+                                <div class="ap-step" id="apStep2"></div>
+                                <div class="ap-step" id="apStep3"></div>
+                            </div>
+
+                            <t t-if="error">
+                                <div class="lg-flash err" data-flash="1"><i class="fa fa-exclamation-circle"></i><span t-out="error"/></div>
+                            </t>
+                            <t t-if="success">
+                                <div class="lg-flash ok" data-flash="1">
+                                    <svg class="lg-check" viewBox="0 0 52 52"><circle cx="26" cy="26" r="22"/><path d="M15 27 l8 8 l15 -17"/></svg>
+                                    <span t-out="success"/>
+                                </div>
+                            </t>
+
+                            <form action="/book-appointment/submit" method="POST" id="apForm" class="lg-form">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                <div class="form-floating mb-3">
+                                    <input type="text" name="name" class="form-control" id="floatName" required="required" placeholder="Full name"/>
+                                    <label for="floatName"><i class="fa fa-user me-2"></i>Full name</label>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-floating">
+                                            <input type="email" name="email" class="form-control" id="floatEmail" required="required" placeholder="Email"/>
+                                            <label for="floatEmail"><i class="fa fa-envelope me-2"></i>Email</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-floating">
+                                            <input type="tel" name="phone" class="form-control" id="floatPhone" required="required" placeholder="Phone"/>
+                                            <label for="floatPhone"><i class="fa fa-phone me-2"></i>Phone</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-floating">
+                                            <select name="doctor_id" class="form-select" id="floatDoctor" required="required">
+                                                <option value="" disabled="disabled" selected="selected"></option>
+                                                <t t-foreach="doctors" t-as="doctor">
+                                                    <option t-att-value="doctor.id">Dr. <t t-out="doctor.name"/></option>
+                                                </t>
+                                            </select>
+                                            <label for="floatDoctor"><i class="fa fa-user-md me-2"></i>Select doctor</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="form-floating">
+                                            <input type="date" class="form-control" id="floatDate" required="required"/>
+                                            <label for="floatDate"><i class="fa fa-calendar me-2"></i>Date</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <input type="hidden" name="appointment_date" id="floatSlot"/>
+                                    <div id="apSlots"></div>
+                                    <input type="time" id="apTime" class="form-control mt-2 d-none"/>
+                                </div>
+
+                                <button type="submit" id="apSubmit" class="lg-btn lg-btn-p lg-submit">
+                                    <span id="apSubmitText">Confirm appointment</span><i id="apSubmitIcon" class="fa fa-arrow-right"></i>
+                                </button>
+
+                                <div class="lg-note">
+                                    <span><i class="fa fa-lock"></i>100% secure</span>
+                                    <span><i class="fa fa-bolt"></i>Instant request</span>
+                                    <span><i class="fa fa-envelope-o"></i>Email confirmation</span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ FAQ ============ -->
+                <section class="lg-sec" id="faq">
+                    <div class="lg-wrap">
+                        <div class="lg-head">
+                            <span class="lg-eyebrow rv">FAQ</span>
+                            <h2 class="lg-h2 rv" style="--d:1">Good to <span class="lg-grad">know</span></h2>
+                        </div>
+                        <div class="lg-faq">
+                            <div class="lg-fq glass rv open"><button type="button">How do I book an appointment?<i class="fa fa-plus"></i></button><div class="lg-fa"><div><p>Choose your doctor, pick a date, select one of the free time slots and send your details. Your request reaches the clinic instantly.</p></div></div></div>
+                            <div class="lg-fq glass rv" style="--d:1"><button type="button">Do I need an account?<i class="fa fa-plus"></i></button><div class="lg-fa"><div><p>No. You can book with just your name, email and phone. A patient portal is optional and can be enabled by the clinic.</p></div></div></div>
+                            <div class="lg-fq glass rv" style="--d:2"><button type="button">Can I cancel or change my appointment?<i class="fa fa-plus"></i></button><div class="lg-fa"><div><p>Yes. Once your patient portal access is enabled, you can see your appointments and cancel them there, then book a new time.</p></div></div></div>
+                            <div class="lg-fq glass rv" style="--d:3"><button type="button">Will I get a reminder?<i class="fa fa-plus"></i></button><div class="lg-fa"><div><p>Yes. If you gave us your email address, we send a friendly reminder the day before your appointment.</p></div></div></div>
+                            <div class="lg-fq glass rv" style="--d:4"><button type="button">What if my preferred time is not shown?<i class="fa fa-plus"></i></button><div class="lg-fa"><div><p>Only free slots are shown. If a time is missing, it is already taken, so please try another date or another doctor.</p></div></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ FOOTER ============ -->
+                <footer class="lg-foot">
+                    <div class="lg-wrap">
+                        <div class="lg-foot-g">
+                            <div>
+                                <a class="lg-brand" href="#home"><i class="fa fa-heartbeat"></i><span t-out="request.env.company.name or 'Clinic'"/></a>
+                                <p style="max-width:320px">Modern, caring and simple healthcare. Book online in under a minute.</p>
+                            </div>
+                            <div>
+                                <h4>Explore</h4>
+                                <a href="#why">Why us</a>
+                                <a href="#doctors">Doctors</a>
+                                <a href="#how">How it works</a>
+                                <a href="#faq">FAQ</a>
+                            </div>
+                            <div>
+                                <h4>Contact</h4>
+                                <a t-if="request.env.company.phone" t-att-href="'tel:' + request.env.company.phone"><i class="fa fa-phone me-2"></i><t t-out="request.env.company.phone"/></a>
+                                <a t-if="request.env.company.email" t-att-href="'mailto:' + request.env.company.email"><i class="fa fa-envelope-o me-2"></i><t t-out="request.env.company.email"/></a>
+                                <a href="/clinic/login"><i class="fa fa-user-circle me-2"></i>Patient portal</a>
+                            </div>
+                        </div>
+                        <div class="lg-copy">
+                            <span>© <span id="lgYear">2026</span> <t t-out="request.env.company.name"/>. All rights reserved.</span>
+                            <span>Made with care</span>
+                        </div>
+                    </div>
+                </footer>
+
+                <div class="lg-float" id="lgFloat">
+                    <a class="lg-btn lg-btn-p lg-magnetic" href="#book"><i class="fa fa-calendar-check-o"></i>Book appointment</a>
+                </div>
+            </div>
+
+            <script>
+/* Clinic slot picker: doctor + date -> free time buttons.
+ * Writes the chosen local time ('YYYY-MM-DDTHH:MM') into a hidden "appointment_date" input. */
+(function () {
+    'use strict';
+
+    function rpc(url, params) {
+        return fetch(url, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: params}),
+        }).then(function (r) { return r.json(); }).then(function (d) { return d.result; });
+    }
+
+    window.ClinicSlotPicker = function (o) {
+        var form = o.form, dateEl = o.dateInput, box = o.slotsBox;
+        var hidden = o.hidden, timeEl = o.timeInput;
+        var onChange = o.onChange || function () {};
+        var seq = 0;
+
+        function setValue(v) {
+            hidden.value = v || '';
+            onChange(hidden.value);
+        }
+
+        function doctorId() {
+            var el = form.querySelector('input[name="doctor_id"]:checked') ||
+                     form.querySelector('select[name="doctor_id"]');
+            return el &amp;&amp; el.value ? el.value : '';
+        }
+
+        function hint(text, cls) {
+            box.innerHTML = '';
+            var d = document.createElement('div');
+            d.className = 'small ' + (cls || 'text-muted');
+            d.textContent = text;
+            box.appendChild(d);
+        }
+
+        function render(res) {
+            timeEl.classList.add('d-none');
+            if (!res) { return hint('Could not load available times. Please try again.', 'text-danger'); }
+
+            if (!res.has_schedule) {
+                // Doctor has no weekly schedule: let the patient pick any time
+                hint('Pick your preferred time:');
+                timeEl.classList.remove('d-none');
+                return;
+            }
+            if (!res.slots.length) {
+                return hint('No free slots on this date. Please choose another date.', 'text-danger');
+            }
+            box.innerHTML = '';
+            res.slots.forEach(function (s) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'btn btn-outline-primary btn-sm m-1 cl-slot';
+                b.textContent = s.label;
+                b.addEventListener('click', function () {
+                    box.querySelectorAll('.cl-slot').forEach(function (x) {
+                        x.classList.remove('btn-primary');
+                        x.classList.add('btn-outline-primary');
+                    });
+                    b.classList.remove('btn-outline-primary');
+                    b.classList.add('btn-primary');
+                    setValue(s.value);
+                });
+                box.appendChild(b);
+            });
+        }
+
+        function refresh() {
+            setValue('');
+            timeEl.value = '';
+            timeEl.classList.add('d-none');
+            var doc = doctorId(), day = dateEl.value;
+            if (!doc || !day) {
+                return hint('Select a doctor and a date to see available times.');
+            }
+            hint('Loading available times...');
+            var token = ++seq;
+            rpc('/clinic/slots', {doctor_id: doc, date: day}).then(function (res) {
+                if (token === seq) { render(res); }
+            }).catch(function () {
+                if (token === seq) { render(null); }
+            });
+        }
+
+        form.addEventListener('change', function (e) {
+            if (e.target === dateEl || e.target.name === 'doctor_id') { refresh(); }
+        });
+        timeEl.addEventListener('change', function () {
+            setValue(timeEl.value &amp;&amp; dateEl.value ? dateEl.value + 'T' + timeEl.value : '');
+        });
+
+        // Capture phase: runs before the page's own submit handlers (loading spinner etc.)
+        form.addEventListener('submit', function (e) {
+            if (!hidden.value) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                var warn = box.querySelector('.cl-slot-warn');
+                if (!warn) {
+                    warn = document.createElement('div');
+                    warn.className = 'cl-slot-warn text-danger small mt-2';
+                    warn.textContent = 'Please select a time slot.';
+                    box.appendChild(warn);
+                }
+            }
+        }, true);
+
+        refresh();
+    };
+})();
+
+(function () {
+    'use strict';
+    var root = document.getElementById('lgRoot');
+    if (!root) { return; }
+    root.classList.add('js');
+
+    function $(s, c) { return (c || document).querySelector(s); }
+    function $$(s, c) { return [].slice.call((c || document).querySelectorAll(s)); }
+    var reduce = window.matchMedia &amp;&amp; window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    /* ---- which element scrolls? (Odoo often scrolls #wrapwrap, not window) ---- */
+    var wrap = document.getElementById('wrapwrap');
+    var scroller = window;
+    if (wrap) {
+        var oy = getComputedStyle(wrap).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') &amp;&amp; wrap.scrollHeight > wrap.clientHeight + 5) { scroller = wrap; }
+    }
+    function st() { return scroller === window ? (window.pageYOffset || document.documentElement.scrollTop) : scroller.scrollTop; }
+    function sh() { return scroller === window ? document.documentElement.scrollHeight : scroller.scrollHeight; }
+    function vh() { return window.innerHeight; }
+
+    /* ---- reveal on scroll + count-up ---- */
+    function countUp(el) {
+        var to = parseFloat(el.getAttribute('data-count')) || 0, t0 = performance.now(), d = 1500;
+        (function f(n) {
+            var p = Math.min((n - t0) / d, 1), e = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(to * e);
+            if (p &lt; 1) { requestAnimationFrame(f); }
+        })(t0);
+    }
+    var io = null;
+    if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                    e.target.classList.add('in');
+                    if (e.target.hasAttribute('data-count')) { countUp(e.target); }
+                    io.unobserve(e.target);
+                }
+            });
+        }, {threshold: 0.15, rootMargin: '0px 0px -6% 0px'});
+    }
+    $$('.rv, .lg-step, [data-count]').forEach(function (el) {
+        if (io) { io.observe(el); } else { el.classList.add('in'); if (el.hasAttribute('data-count')) { countUp(el); } }
+    });
+    setTimeout(function () {   // safety net if the observer never fired
+        if (!$('.rv.in')) { $$('.rv, .lg-step').forEach(function (el) { el.classList.add('in'); }); }
+    }, 2500);
+
+    /* ---- glass spotlight + 3D tilt ---- */
+    root.addEventListener('pointermove', function (e) {
+        var g = e.target.closest ? e.target.closest('.glass') : null;
+        if (g) {
+            var r = g.getBoundingClientRect();
+            g.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+            g.style.setProperty('--my', (e.clientY - r.top) + 'px');
+        }
+    }, {passive: true});
+    $$('.tilt').forEach(function (el) {
+        el.addEventListener('pointermove', function (e) {
+            if (reduce) { return; }
+            var r = el.getBoundingClientRect();
+            el.style.setProperty('--ry', (((e.clientX - r.left) / r.width - 0.5) * 14) + 'deg');
+            el.style.setProperty('--rx', (((e.clientY - r.top) / r.height - 0.5) * -14) + 'deg');
+        });
+        el.addEventListener('pointerleave', function () {
+            el.style.setProperty('--rx', '0deg');
+            el.style.setProperty('--ry', '0deg');
+        });
+    });
+
+    /* ---- magnetic buttons ---- */
+    $$('.lg-magnetic').forEach(function (el) {
+        el.addEventListener('pointermove', function (e) {
+            if (reduce) { return; }
+            var r = el.getBoundingClientRect();
+            el.style.translate = ((e.clientX - r.left - r.width / 2) * 0.22) + 'px ' + ((e.clientY - r.top - r.height / 2) * 0.32) + 'px';
+        });
+        el.addEventListener('pointerleave', function () { el.style.translate = '0px 0px'; });
+    });
+
+    /* ---- liquid cursor blob in the hero ---- */
+    var hero = $('#home'), blob = $('#lgCursor');
+    if (hero &amp;&amp; blob &amp;&amp; !reduce) {
+        var tx = hero.clientWidth * 0.3, ty = hero.clientHeight * 0.5, cx = tx, cy = ty;
+        hero.addEventListener('pointermove', function (e) {
+            var r = hero.getBoundingClientRect();
+            tx = e.clientX - r.left; ty = e.clientY - r.top;
+        });
+        (function loop() {
+            cx += (tx - cx) * 0.1; cy += (ty - cy) * 0.1;
+            blob.style.transform = 'translate(' + (cx - 85) + 'px,' + (cy - 85) + 'px)';
+            requestAnimationFrame(loop);
+        })();
+    }
+
+    /* ---- nav lens (sliding glass selector) ---- */
+    var linkBox = $('#lgLinks'), lens = $('#lgLens'), links = $$('#lgLinks a'), activeLink = links[0];
+    function moveLens(a) {
+        if (!a || !lens) { return; }
+        lens.style.width = a.offsetWidth + 'px';
+        lens.style.transform = 'translateX(' + a.offsetLeft + 'px)';
+    }
+    links.forEach(function (a) { a.addEventListener('mouseenter', function () { moveLens(a); }); });
+    if (linkBox) { linkBox.addEventListener('mouseleave', function () { moveLens(activeLink); }); }
+    window.addEventListener('resize', function () { moveLens(activeLink); });
+    setTimeout(function () { moveLens(activeLink); }, 350);
+
+    /* ---- scroll engine ---- */
+    var floatPill = $('#lgFloat'), spyIds = links.map(function (a) { return a.getAttribute('href').slice(1); });
+    var ticking = false;
+    function update() {
+        ticking = false;
+        var t = st(), max = sh() - vh();
+        root.style.setProperty('--p', max > 0 ? Math.min(t / max, 1) : 0);
+
+        if (!reduce &amp;&amp; t &lt; 1600) {
+            $$('[data-speed]').forEach(function (el) {
+                el.style.setProperty('--py', (t * parseFloat(el.getAttribute('data-speed'))) + 'px');
+            });
+        }
+
+        var book = $('#book'), inBook = false;
+        if (book) { var br = book.getBoundingClientRect(); inBook = br.top &lt; vh() * 0.7 &amp;&amp; br.bottom > 0; }
+        if (floatPill) { floatPill.classList.toggle('show', t > vh() * 0.7 &amp;&amp; !inBook); }
+
+        var tl = $('#howTl');
+        if (tl) {
+            var r = tl.getBoundingClientRect();
+            tl.style.setProperty('--hp', Math.max(0, Math.min(1, (vh() * 0.65 - r.top) / r.height)));
+        }
+
+        var current = spyIds[0];
+        spyIds.forEach(function (id) {
+            var s = document.getElementById(id);
+            if (s &amp;&amp; s.getBoundingClientRect().top &lt; vh() * 0.4) { current = id; }
+        });
+        var next = links.filter(function (a) { return a.getAttribute('href') === '#' + current; })[0];
+        if (next &amp;&amp; next !== activeLink) { activeLink = next; moveLens(activeLink); }
+    }
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+    scroller.addEventListener('scroll', onScroll, {passive: true});
+    window.addEventListener('resize', onScroll);
+    update();
+
+    /* ---- smooth anchors ---- */
+    $$('a[href^="#"]').forEach(function (a) {
+        a.addEventListener('click', function (e) {
+            var id = a.getAttribute('href').slice(1), el = id ? document.getElementById(id) : null;
+            if (el) { e.preventDefault(); el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'}); }
+        });
+    });
+
+    /* ---- doctor carousel ---- */
+    var rail = $('#lgRail');
+    $$('[data-rail]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            if (rail) { rail.scrollBy({left: parseInt(b.getAttribute('data-rail'), 10) * 320, behavior: 'smooth'}); }
+        });
+    });
+
+    /* ---- pick a doctor -> jump to the form ---- */
+    $$('[data-doctor]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var sel = $('#floatDoctor');
+            if (sel) {
+                sel.value = b.getAttribute('data-doctor');
+                sel.dispatchEvent(new Event('change', {bubbles: true}));
+            }
+            var book = $('#book');
+            if (book) { book.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'}); }
+            setTimeout(function () { var d = $('#floatDate'); if (d) { d.focus({preventScroll: true}); } }, 700);
+        });
+    });
+
+    /* ---- FAQ ---- */
+    $$('.lg-fq button').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var item = b.parentNode, open = item.classList.contains('open');
+            $$('.lg-fq').forEach(function (i) { i.classList.remove('open'); });
+            if (!open) { item.classList.add('open'); }
+        });
+    });
+
+    /* ---- booking form ---- */
+    var form = $('#apForm');
+    if (form) {
+        var dateInput = $('#floatDate'), now = new Date();
+        dateInput.min = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+        var s1 = $('#apStep1'), s2 = $('#apStep2'), s3 = $('#apStep3');
+        var filled = function (id) {
+            var el = document.getElementById(id);
+            return !!(el &amp;&amp; el.value &amp;&amp; el.checkValidity());
+        };
+        var updateProgress = function () {
+            s1.classList.toggle('done', filled('floatName') &amp;&amp; filled('floatEmail') &amp;&amp; filled('floatPhone'));
+            s2.classList.toggle('done', filled('floatDoctor'));
+            s3.classList.toggle('done', filled('floatSlot'));
+        };
+        form.addEventListener('input', updateProgress);
+        form.addEventListener('change', updateProgress);
+        updateProgress();
+
+        if (window.ClinicSlotPicker) {
+            window.ClinicSlotPicker({
+                form: form, dateInput: dateInput, slotsBox: $('#apSlots'),
+                hidden: $('#floatSlot'), timeInput: $('#apTime'), onChange: updateProgress
+            });
+        }
+
+        form.addEventListener('submit', function () {
+            if (form.checkValidity()) {
+                $('#apSubmit').classList.add('is-loading');
+                $('#apSubmitText').textContent = 'Booking...';
+                $('#apSubmitIcon').className = 'fa fa-circle-o-notch';
+            }
+        });
+    }
+
+    if ($('[data-flash]')) {
+        setTimeout(function () { var b = $('#book'); if (b) { b.scrollIntoView({behavior: 'smooth', block: 'start'}); } }, 500);
+    }
+    var y = $('#lgYear');
+    if (y) { y.textContent = new Date().getFullYear(); }
+})();
+
+            </script>
+        </t>
+    </template>
+</odoo>

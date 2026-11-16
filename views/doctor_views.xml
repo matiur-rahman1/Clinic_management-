@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- SEARCH                                                       -->
+    <!-- ============================================================ -->
+    <record id="view_doctor_search" model="ir.ui.view">
+        <field name="name">clinic.doctor.search</field>
+        <field name="model">clinic.doctor</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="phone"/>
+                <field name="specialty"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_specialty" string="Specialty" context="{'group_by': 'specialty'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- KANBAN (photo cards)                                         -->
+    <!-- ============================================================ -->
+    <record id="view_doctor_kanban" model="ir.ui.view">
+        <field name="name">clinic.doctor.kanban</field>
+        <field name="model">clinic.doctor</field>
+        <field name="arch" type="xml">
+            <kanban class="cl-kanban cl-kanban-doctor" sample="1">
+                <field name="name"/>
+                <field name="specialty"/>
+                <field name="phone"/>
+                <field name="image"/>
+                <field name="consultation_fee"/>
+                <field name="today_count"/>
+                <field name="available_now"/>
+                <field name="availability_label"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="cl-doc-card cl-spec-#{record.specialty.raw_value}">
+                            <div class="cl-doc-banner"/>
+                            <div class="cl-doc-body">
+                                <div t-attf-class="cl-avatar #{record.available_now.raw_value ? 'is-on' : ''}">
+                                    <t t-if="record.image.raw_value">
+                                        <field name="image" widget="image" class="cl-avatar-img"
+                                               options="{'size': [76, 76]}"/>
+                                    </t>
+                                    <t t-else="">
+                                        <div class="cl-avatar-ph"><i class="fa fa-user-md"/></div>
+                                    </t>
+                                </div>
+
+                                <div class="cl-doc-name">Dr. <field name="name"/></div>
+                                <span class="cl-spec-badge"><field name="specialty"/></span>
+
+                                <div class="cl-doc-avail">
+                                    <span t-attf-class="cl-dot #{record.available_now.raw_value ? 'on' : 'off'}"/>
+                                    <field name="availability_label"/>
+                                </div>
+
+                                <div class="cl-doc-stats">
+                                    <div><b><field name="today_count"/></b><small>Today</small></div>
+                                    <div><b><field name="consultation_fee"/></b><small>Fee</small></div>
+                                    <div t-if="record.phone.raw_value">
+                                        <b><i class="fa fa-phone"/></b><small><field name="phone"/></small>
+                                    </div>
+                                </div>
+
+                                <button type="object" name="action_book_appointment" class="btn cl-book-btn">
+                                    <i class="fa fa-calendar-plus-o me-1"/> Book appointment
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- LIST                                                         -->
+    <!-- ============================================================ -->
+    <record id="view_doctor_list" model="ir.ui.view">
+        <field name="name">clinic.doctor.list</field>
+        <field name="model">clinic.doctor</field>
+        <field name="arch" type="xml">
+            <list decoration-success="available_now" decoration-muted="not available_now">
+                <field name="available_now" column_invisible="1"/>
+                <field name="name"/>
+                <field name="specialty" widget="badge"/>
+                <field name="availability_label"/>
+                <field name="today_count"/>
+                <field name="consultation_fee"/>
+                <field name="phone"/>
+                <field name="email"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- FORM (hero header)                                           -->
+    <!-- ============================================================ -->
+    <record id="view_doctor_form" model="ir.ui.view">
+        <field name="name">clinic.doctor.form</field>
+        <field name="model">clinic.doctor</field>
+        <field name="arch" type="xml">
+            <form class="cl-form">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_open_today" icon="fa-clock-o">
+                            <div class="o_stat_info">
+                                <field name="today_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Today</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object" name="action_open_appointments" icon="fa-calendar">
+                            <div class="o_stat_info">
+                                <field name="appointment_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Appointments</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <field name="available_now" invisible="1"/>
+
+                    <div class="cl-hero">
+                        <span class="cl-hero-blob cl-hero-blob-1"/>
+                        <span class="cl-hero-blob cl-hero-blob-2"/>
+                        <field name="image" widget="image" class="cl-hero-photo"
+                               options="{'size': [96, 96], 'preview_image': 'image'}"/>
+                        <div class="cl-hero-main">
+                            <h1><field name="name" placeholder="Doctor Name"/></h1>
+                            <div class="cl-hero-tags">
+                                <span class="cl-hero-chip"><i class="fa fa-stethoscope me-1"/><field name="specialty" readonly="1"/></span>
+                                <span class="cl-hero-chip cl-on" invisible="not available_now">
+                                    <span class="cl-dot on"/><field name="availability_label"/>
+                                </span>
+                                <span class="cl-hero-chip cl-off" invisible="available_now">
+                                    <span class="cl-dot off"/><field name="availability_label"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Professional">
+                            <field name="specialty"/>
+                            <field name="qualifications" placeholder="e.g. MBBS, FCPS (Medicine)"/>
+                            <field name="reg_no"/>
+                            <field name="consultation_fee"/>
+                            <field name="income_account" groups="base.group_system"/>
+                        </group>
+                        <group string="Contact">
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Schedule" name="schedule">
+                            <field name="schedule_ids">
+                                <list editable="bottom">
+                                    <field name="weekday"/>
+                                    <field name="start_time" widget="float_time"/>
+                                    <field name="end_time" widget="float_time"/>
+                                    <field name="max_patients"/>
+                                    <field name="slot_duration" widget="float_time"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Appointments" name="appointments">
+                            <field name="appointment_ids">
+                                <list>
+                                    <field name="appointment_date"/>
+                                    <field name="patient_id"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Digital Signature" name="signature">
+                            <div style="width: 400px; height: 200px; border: 1px dashed #ccc; background-color: #f9f9f9;">
+                                <field name="signature" widget="signature" nolabel="1" style="width: 100%; height: 100%;"/>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_doctor" model="ir.actions.act_window">
+        <field name="name">Doctors</field>
+        <field name="res_model">clinic.doctor</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_doctor_search"/>
+    </record>
+</odoo>

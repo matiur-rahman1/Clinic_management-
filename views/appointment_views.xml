@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Form View -->
+    <record id="view_appointment_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.form</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Start Consultation" type="object" class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Mark as Done" type="object" class="btn-success" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('done', 'cancelled')"/>
+                    <button name="%(action_report_appointment)d" string="Print Slip" type="action" class="btn-secondary"/>
+                    <button name="%(action_report_prescription)d" string="Print Rx" type="action" class="btn-secondary" invisible="not prescription_ids"/>
+
+                    <button name="action_create_invoice" string="Create Invoice" type="object" class="btn-primary" invisible="invoice_id or state == 'cancelled'"/>
+                    <button name="action_view_invoice" string="View Invoice" type="object" class="btn-secondary" invisible="not invoice_id"/>
+                    <button name="action_register_payment" string="Pay Now" type="object" class="btn-success" invisible="not invoice_id or payment_state == 'paid' or payment_state == 'in_payment'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,in_progress,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="patient_id"/>
+                            <field name="doctor_id"/>
+                        </group>
+                        <group>
+                            <field name="appointment_date"/>
+                            <field name="duration"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Consultation" name="consultation" groups="clinic_management.group_clinic_doctor">
+                            <group>
+                                <group string="Presenting problem">
+                                    <field name="chief_complaint" placeholder="e.g. Fever and sore throat for 3 days"/>
+                                    <field name="diagnosis" placeholder="e.g. Acute tonsillitis"/>
+                                </group>
+                            </group>
+                            <group string="Clinical notes">
+                                <field name="notes" nolabel="1" placeholder="Examination findings, history, observations..."/>
+                            </group>
+                        </page>
+                        <page string="Prescription (Rx)" name="rx" groups="clinic_management.group_clinic_doctor">
+                            <field name="prescription_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="medicine_id" string="From catalog" options="{'no_quick_create': True}"/>
+                                    <field name="drug_name" required="1"/>
+                                    <field name="strength"/>
+                                    <field name="form" optional="show"/>
+                                    <field name="dosage"/>
+                                    <field name="duration"/>
+                                    <field name="instructions"/>
+                                </list>
+                            </field>
+                            <group>
+                                <group string="Advice">
+                                    <field name="advice" nolabel="1" placeholder="Rest, plenty of fluids, avoid cold drinks..."/>
+                                </group>
+                                <group string="Follow-up">
+                                    <field name="follow_up_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Investigations" name="investigations" groups="clinic_management.group_clinic_doctor">
+                            <field name="investigation_ids" context="{'default_patient_id': patient_id, 'default_doctor_id': doctor_id}">
+                                <list editable="bottom">
+                                    <field name="name" string="Test"/>
+                                    <field name="priority"/>
+                                    <field name="test_date"/>
+                                    <field name="state" widget="badge" readonly="1"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state == 'in_progress'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Billing">
+                            <group>
+                                <field name="invoice_id" readonly="1"/>
+                                <field name="payment_state" widget="badge"
+                                       decoration-info="payment_state == 'not_paid'"
+                                       decoration-success="payment_state == 'paid' or payment_state == 'in_payment'"
+                                       decoration-warning="payment_state == 'partial'"
+                                       decoration-danger="payment_state == 'reversed'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Kanban View -->
+    <record id="view_appointment_kanban" model="ir.ui.view">
+        <field name="name">clinic.appointment.kanban</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="appointment_date"/>
+                <field name="state"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <strong class="fs-6"><field name="name"/></strong>
+                            <field name="state" widget="badge"
+                                   decoration-info="state == 'draft'"
+                                   decoration-warning="state == 'confirmed'"
+                                   decoration-primary="state == 'in_progress'"
+                                   decoration-success="state == 'done'"
+                                   decoration-danger="state == 'cancelled'"/>
+                        </div>
+                        <div class="text-muted small mb-1">
+                            <i class="fa fa-user me-1" title="Patient"/> <field name="patient_id"/>
+                        </div>
+                        <div class="text-muted small mb-1">
+                            <i class="fa fa-user-md me-1" title="Doctor"/> Dr. <field name="doctor_id"/>
+                        </div>
+                        <div class="text-muted small">
+                            <i class="fa fa-calendar me-1" title="Date"/> <field name="appointment_date"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_appointment_list" model="ir.ui.view">
+        <field name="name">clinic.appointment.list</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="appointment_date"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-primary="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_appointment_search" model="ir.ui.view">
+        <field name="name">clinic.appointment.search</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+
+                <filter name="filter_today" string="Today's Appointments"
+                        domain="[('appointment_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')), ('appointment_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+
+                <separator/>
+
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="filter_done" string="Done" domain="[('state', '=', 'done')]"/>
+
+                <group expand="0" string="Group By">
+                    <filter name="group_doctor" string="Doctor" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'appointment_date:day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Calendar View -->
+    <record id="view_appointment_calendar" model="ir.ui.view">
+        <field name="name">clinic.appointment.calendar</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <calendar string="Appointments" date_start="appointment_date" color="doctor_id" mode="week">
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Graph View -->
+    <record id="view_appointment_graph" model="ir.ui.view">
+        <field name="name">clinic.appointment.graph</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <graph string="Appointment Analysis" type="bar" sample="1">
+                <field name="doctor_id"/>
+                <field name="state"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot View -->
+    <record id="view_appointment_pivot" model="ir.ui.view">
+        <field name="name">clinic.appointment.pivot</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <pivot string="Appointment Pivot">
+                <field name="doctor_id" type="row"/>
+                <field name="state" type="col"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Main Appointment Action -->
+    <record id="action_clinic_appointment" model="ir.actions.act_window">
+        <field name="name">Appointments</field>
+        <field name="res_model">clinic.appointment</field>
+        <field name="view_mode">list,kanban,calendar,graph,pivot,form</field>
+        <field name="search_view_id" ref="view_appointment_search"/>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_clinic_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">clinic.appointment</field>
+        <field name="view_mode">graph,pivot,form</field>
+        <field name="search_view_id" ref="view_appointment_search"/>
+        <field name="context">{
+            'search_default_filter_today': 1,
+            'pivot_measures': ['__count'],
+            'pivot_row_groupby': ['doctor_id'],
+            'pivot_col_groupby': ['state']
+        }</field>
+    </record>
+    <record id="action_clinic_dashboard_client" model="ir.actions.client">
+        <field name="name">Dashboard</field>
+        <field name="tag">clinic_dashboard</field>
+    </record>
+
+    <!-- ========================================== -->
+    <!-- MENUS                                      -->
+    <!-- ========================================== -->
+    <menuitem id="menu_clinic_root" name="Clinic" sequence="10" action="action_clinic_dashboard_client"/>
+    <menuitem id="menu_clinic_dashboard" name="Dashboard" parent="menu_clinic_root" action="action_clinic_dashboard_client" sequence="1"/>
+    <menuitem id="menu_clinic_analytics" name="Analytics" parent="menu_clinic_root" action="action_clinic_dashboard" sequence="2"/>
+    <menuitem id="menu_clinic_doctor" name="Doctors" parent="menu_clinic_root" action="action_clinic_doctor" sequence="10"/>
+    <menuitem id="menu_clinic_patient" name="Patients" parent="menu_clinic_root" action="action_clinic_patient" sequence="20"/>
+    <menuitem id="menu_clinic_appointment" name="Appointments" parent="menu_clinic_root" action="action_clinic_appointment" sequence="30"/>
+    <menuitem id="menu_clinic_config" name="Configuration" parent="menu_clinic_root" sequence="100"/>
+
+
+
+</odoo>

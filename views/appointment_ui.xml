@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- These records REPLACE the form / kanban / list views of appointment_views.xml
+         (same XML ids, loaded after it). Menus and actions are not touched. -->
+
+    <!-- ============================================================ -->
+    <!-- FORM (ticket hero)                                           -->
+    <!-- ============================================================ -->
+    <record id="view_appointment_form" model="ir.ui.view">
+        <field name="name">clinic.appointment.form</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <form class="ap-form">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_start" string="Start Consultation" type="object" class="btn-primary" invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Mark as Done" type="object" class="btn-success" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state in ('done', 'cancelled')"/>
+                    <button name="%(action_report_appointment)d" string="Print Slip" type="action" class="btn-secondary"/>
+                    <button name="%(action_report_prescription)d" string="Print Rx" type="action" class="btn-secondary" invisible="not prescription_ids"/>
+
+                    <button name="action_create_invoice" string="Create Invoice" type="object" class="btn-primary" invisible="invoice_id or state == 'cancelled'"/>
+                    <button name="action_view_invoice" string="View Invoice" type="object" class="btn-secondary" invisible="not invoice_id"/>
+                    <button name="action_register_payment" string="Pay Now" type="object" class="btn-success" invisible="not invoice_id or payment_state == 'paid' or payment_state == 'in_payment'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,in_progress,done"/>
+                </header>
+                <sheet>
+                    <field name="is_today" invisible="1"/>
+                    <field name="is_overdue" invisible="1"/>
+
+                    <div class="ap-hero">
+                        <div class="ap-ticket" invisible="not appointment_date">
+                            <div class="ap-time"><field name="time_label"/></div>
+                            <div class="ap-day"><field name="day_label"/></div>
+                        </div>
+                        <div class="ap-hero-main">
+                            <div class="ap-ref"><i class="fa fa-ticket me-2"/><field name="name" readonly="1"/></div>
+                            <div class="ap-people">
+                                <span class="ap-person">
+                                    <span class="ap-av"><field name="patient_initials"/></span>
+                                    <field name="patient_id" readonly="1" options="{'no_open': True}"/>
+                                </span>
+                                <i class="fa fa-long-arrow-right ap-arrow"/>
+                                <span class="ap-person">
+                                    <span class="ap-av ap-av-doc"><field name="doctor_initials"/></span>
+                                    <span>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/></span>
+                                </span>
+                            </div>
+                            <div class="ap-chips">
+                                <span class="ap-chip ap-chip-today" invisible="not is_today"><i class="fa fa-star me-1"/>Today</span>
+                                <span class="ap-chip ap-chip-late" invisible="not is_overdue"><i class="fa fa-exclamation-circle me-1"/>Overdue</span>
+                                <span class="ap-chip"><i class="fa fa-hourglass-half me-1"/><field name="duration" readonly="1"/> h</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Who">
+                            <field name="patient_id"/>
+                            <field name="doctor_id"/>
+                        </group>
+                        <group string="When">
+                            <field name="appointment_date"/>
+                            <field name="duration"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Consultation" name="consultation" groups="clinic_management.group_clinic_doctor">
+                            <group>
+                                <group string="Presenting problem">
+                                    <field name="chief_complaint" placeholder="e.g. Fever and sore throat for 3 days"/>
+                                    <field name="diagnosis" placeholder="e.g. Acute tonsillitis"/>
+                                </group>
+                            </group>
+                            <group string="Clinical notes">
+                                <field name="notes" nolabel="1" placeholder="Examination findings, history, observations..."/>
+                            </group>
+                        </page>
+                        <page string="Prescription (Rx)" name="rx" groups="clinic_management.group_clinic_doctor">
+                            <field name="prescription_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="medicine_id" string="From catalog" options="{'no_quick_create': True}"/>
+                                    <field name="drug_name" required="1"/>
+                                    <field name="strength"/>
+                                    <field name="form" optional="show"/>
+                                    <field name="dosage"/>
+                                    <field name="duration"/>
+                                    <field name="instructions"/>
+                                </list>
+                            </field>
+                            <group>
+                                <group string="Advice">
+                                    <field name="advice" nolabel="1" placeholder="Rest, plenty of fluids, avoid cold drinks..."/>
+                                </group>
+                                <group string="Follow-up">
+                                    <field name="follow_up_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Investigations" name="investigations" groups="clinic_management.group_clinic_doctor">
+                            <field name="investigation_ids" context="{'default_patient_id': patient_id, 'default_doctor_id': doctor_id}">
+                                <list editable="bottom">
+                                    <field name="name" string="Test"/>
+                                    <field name="priority"/>
+                                    <field name="test_date"/>
+                                    <field name="state" widget="badge" readonly="1"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state == 'in_progress'"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Billing">
+                            <group>
+                                <field name="invoice_id" readonly="1"/>
+                                <field name="payment_state" widget="badge"
+                                       decoration-info="payment_state == 'not_paid'"
+                                       decoration-success="payment_state == 'paid' or payment_state == 'in_payment'"
+                                       decoration-warning="payment_state == 'partial'"
+                                       decoration-danger="payment_state == 'reversed'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- KANBAN (boarding-pass tickets)                               -->
+    <!-- ============================================================ -->
+    <record id="view_appointment_kanban" model="ir.ui.view">
+        <field name="name">clinic.appointment.kanban</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column ap-kanban">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="state"/>
+                <field name="duration"/>
+                <field name="time_label"/>
+                <field name="day_label"/>
+                <field name="is_today"/>
+                <field name="is_overdue"/>
+                <field name="patient_initials"/>
+                <field name="doctor_initials"/>
+                <field name="payment_state"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="ap-card ap-st-#{record.state.raw_value} #{record.is_overdue.raw_value ? 'is-overdue' : ''}">
+                            <div class="ap-stub">
+                                <div class="ap-stub-time"><field name="time_label"/></div>
+                                <div class="ap-stub-day"><field name="day_label"/></div>
+                                <span t-if="record.is_today.raw_value" class="ap-today-tag">TODAY</span>
+                            </div>
+                            <div class="ap-body">
+                                <div class="ap-body-top">
+                                    <span class="ap-ref"><field name="name"/></span>
+                                    <span class="ap-status"><field name="state"/></span>
+                                </div>
+                                <div class="ap-line">
+                                    <span class="ap-av"><field name="patient_initials"/></span>
+                                    <span class="ap-nm"><field name="patient_id"/></span>
+                                </div>
+                                <div class="ap-line">
+                                    <span class="ap-av ap-av-doc"><field name="doctor_initials"/></span>
+                                    <span class="ap-nm">Dr. <field name="doctor_id"/></span>
+                                </div>
+                                <div class="ap-foot">
+                                    <span><i class="fa fa-hourglass-half me-1"/><field name="duration"/> h</span>
+                                    <span t-if="record.is_overdue.raw_value" class="ap-late">Overdue</span>
+                                    <span t-if="record.payment_state.raw_value == 'paid'" class="ap-paid">
+                                        <i class="fa fa-check-circle me-1"/>Paid
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- LIST                                                         -->
+    <!-- ============================================================ -->
+    <record id="view_appointment_list" model="ir.ui.view">
+        <field name="name">clinic.appointment.list</field>
+        <field name="model">clinic.appointment</field>
+        <field name="arch" type="xml">
+            <list decoration-danger="is_overdue" decoration-muted="state == 'cancelled'">
+                <field name="is_overdue" column_invisible="1"/>
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="appointment_date"/>
+                <field name="duration" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-primary="state == 'in_progress'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+</odoo>

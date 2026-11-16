@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- SEARCH                                                       -->
+    <!-- ============================================================ -->
+    <record id="view_patient_search" model="ir.ui.view">
+        <field name="name">clinic.patient.search</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" filter_domain="['|', '|', ('name', 'ilike', self), ('patient_id', 'ilike', self), ('phone', 'ilike', self)]" string="Name / ID / Phone"/>
+                <field name="email"/>
+                <filter name="filter_allergy" string="Has Allergies" domain="[('allergies', '!=', False)]"/>
+                <filter name="filter_chronic" string="Chronic Disease" domain="[('chronic_diseases', '!=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_blood" string="Blood Group" context="{'group_by': 'blood_group'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- KANBAN (health cards)                                        -->
+    <!-- ============================================================ -->
+    <record id="view_patient_kanban" model="ir.ui.view">
+        <field name="name">clinic.patient.kanban</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <kanban class="cl-kanban cl-kanban-patient" sample="1">
+                <field name="name"/>
+                <field name="patient_id"/>
+                <field name="age"/>
+                <field name="blood_group"/>
+                <field name="phone"/>
+                <field name="image"/>
+                <field name="initials"/>
+                <field name="has_allergy"/>
+                <field name="has_chronic"/>
+                <field name="visit_count"/>
+                <field name="last_visit"/>
+                <field name="next_appointment"/>
+                <field name="amount_due"/>
+                <field name="currency_id"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="cl-pat-card cl-tone-#{record.id.raw_value % 6}">
+                            <div class="cl-pat-band">
+                                <span class="cl-pat-band-id"><i class="fa fa-id-badge me-1"/><field name="patient_id"/></span>
+                                <span t-if="record.blood_group.raw_value" class="cl-blood">
+                                    <i class="fa fa-tint"/> <field name="blood_group"/>
+                                </span>
+                            </div>
+
+                            <div class="cl-pat-main">
+                                <div class="cl-pat-head">
+                                    <div class="cl-pat-avatar">
+                                        <t t-if="record.image.raw_value">
+                                            <field name="image" widget="image" class="cl-pat-img" options="{'size': [60, 60]}"/>
+                                        </t>
+                                        <t t-else="">
+                                            <span class="cl-pat-initials"><field name="initials"/></span>
+                                        </t>
+                                    </div>
+                                    <div class="cl-pat-title">
+                                        <div class="cl-pat-name"><field name="name"/></div>
+                                        <div class="cl-pat-age" t-if="record.age.raw_value">
+                                            <i class="fa fa-birthday-cake me-1"/><field name="age"/> yrs
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="cl-pat-tags">
+                                    <span t-if="record.has_allergy.raw_value" class="cl-tag cl-tag-warn">
+                                        <i class="fa fa-exclamation-triangle me-1"/>Allergy
+                                    </span>
+                                    <span t-if="record.has_chronic.raw_value" class="cl-tag cl-tag-chronic">
+                                        <i class="fa fa-heartbeat me-1"/>Chronic
+                                    </span>
+                                    <span t-if="record.amount_due.raw_value &gt; 0" class="cl-tag cl-tag-due">
+                                        Due <field name="amount_due"/>
+                                    </span>
+                                </div>
+
+                                <div class="cl-pat-stats">
+                                    <div>
+                                        <b><field name="visit_count"/></b>
+                                        <small>Visits</small>
+                                    </div>
+                                    <div>
+                                        <b>
+                                            <t t-if="record.last_visit.raw_value"><field name="last_visit"/></t>
+                                            <t t-else="">—</t>
+                                        </b>
+                                        <small>Last visit</small>
+                                    </div>
+                                    <div>
+                                        <b>
+                                            <t t-if="record.next_appointment.raw_value"><field name="next_appointment" widget="date"/></t>
+                                            <t t-else="">—</t>
+                                        </b>
+                                        <small>Next</small>
+                                    </div>
+                                </div>
+
+                                <div class="cl-pat-foot">
+                                    <span class="cl-pat-phone" t-if="record.phone.raw_value">
+                                        <i class="fa fa-phone me-1"/><field name="phone"/>
+                                    </span>
+                                    <button type="object" name="action_book_appointment" class="btn btn-sm cl-pat-book">
+                                        <i class="fa fa-calendar-plus-o me-1"/>Book
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- LIST                                                         -->
+    <!-- ============================================================ -->
+    <record id="view_patient_list" model="ir.ui.view">
+        <field name="name">clinic.patient.list</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <list decoration-warning="has_allergy">
+                <field name="has_allergy" column_invisible="1"/>
+                <field name="patient_id"/>
+                <field name="name"/>
+                <field name="age"/>
+                <field name="blood_group" widget="badge"/>
+                <field name="phone"/>
+                <field name="visit_count" optional="show"/>
+                <field name="last_visit" optional="show"/>
+                <field name="next_appointment" widget="date" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount_due" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- FORM (health card hero)                                      -->
+    <!-- ============================================================ -->
+    <record id="view_patient_form" model="ir.ui.view">
+        <field name="name">clinic.patient.form</field>
+        <field name="model">clinic.patient</field>
+        <field name="arch" type="xml">
+            <form class="cl-form cl-form-pat">
+                <header>
+                    <button name="action_create_user" type="object" string="Grant Portal Access" class="btn-primary" invisible="not partner_id" groups="clinic_management.group_clinic_doctor"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="object" name="action_open_appointments" icon="fa-calendar">
+                            <div class="o_stat_info">
+                                <field name="appointment_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Appointments</span>
+                            </div>
+                        </button>
+                        <button class="oe_stat_button" type="object" name="action_open_invoices" icon="fa-money"
+                                groups="account.group_account_invoice">
+                            <div class="o_stat_info">
+                                <field name="amount_due" class="o_stat_value"/>
+                                <span class="o_stat_text">Amount Due</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <field name="has_allergy" invisible="1"/>
+                    <field name="has_chronic" invisible="1"/>
+                    <field name="currency_id" invisible="1"/>
+
+                    <div class="cl-hero cl-hero-pat">
+                        <span class="cl-hero-blob cl-hero-blob-1"/>
+                        <span class="cl-hero-blob cl-hero-blob-2"/>
+                        <field name="image" widget="image" class="cl-hero-photo"
+                               options="{'size': [96, 96], 'preview_image': 'image'}"/>
+                        <div class="cl-hero-main">
+                            <h1><field name="name" placeholder="Patient Name"/></h1>
+                            <div class="cl-hero-tags">
+                                <span class="cl-hero-chip"><i class="fa fa-id-card-o me-2"/><field name="patient_id" readonly="1"/></span>
+                                <span class="cl-hero-chip" invisible="not age"><i class="fa fa-birthday-cake me-2"/><field name="age" readonly="1"/>&#160;yrs</span>
+                                <span class="cl-hero-chip" invisible="not blood_group"><i class="fa fa-tint me-2"/><field name="blood_group" readonly="1"/></span>
+                                <span class="cl-hero-chip cl-chip-warn" invisible="not has_allergy"><i class="fa fa-exclamation-triangle me-2"/>Allergy</span>
+                                <span class="cl-hero-chip cl-chip-chronic" invisible="not has_chronic"><i class="fa fa-heartbeat me-2"/>Chronic condition</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cl-alert-strip" invisible="not has_allergy">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <b>Allergies:</b>
+                        <field name="allergies" readonly="1" nolabel="1"/>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="birthdate"/>
+                            <field name="age"/>
+                            <field name="blood_group"/>
+                        </group>
+                        <group>
+                            <field name="phone"/>
+                            <field name="email"/>
+                            <field name="partner_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Medical Background">
+                            <group>
+                                <group>
+                                    <field name="allergies" placeholder="List any allergies..."/>
+                                    <field name="chronic_diseases" placeholder="List chronic diseases..."/>
+                                </group>
+                                <group>
+                                    <field name="past_surgeries" placeholder="List past surgeries..."/>
+                                    <field name="family_history" placeholder="Family medical history..."/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="vaccinations" placeholder="Vaccination records..."/>
+                                <field name="general_notes" placeholder="General notes..."/>
+                            </group>
+                        </page>
+
+                        <page string="Past Appointments">
+                            <field name="appointment_ids">
+                                <list>
+                                    <field name="appointment_date"/>
+                                    <field name="doctor_id"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'done'"
+                                           decoration-info="state in ('confirmed', 'in_progress')"
+                                           decoration-danger="state == 'cancelled'"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Prescription History">
+                            <field name="prescription_ids">
+                                <list>
+                                    <field name="appointment_id"/>
+                                    <field name="drug_name"/>
+                                    <field name="strength"/>
+                                    <field name="form" optional="hide"/>
+                                    <field name="dosage"/>
+                                    <field name="duration"/>
+                                    <field name="instructions"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_patient" model="ir.actions.act_window">
+        <field name="name">Patients</field>
+        <field name="res_model">clinic.patient</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_patient_search"/>
+    </record>
+</odoo>

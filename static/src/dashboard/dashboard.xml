@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="clinic_management.CountUp">
+        <span class="cd-count" t-esc="text"/>
+    </t>
+
+    <t t-name="clinic_management.Dashboard">
+        <div class="clinic-dash">
+
+            <div t-if="!state.data" class="cd-loading">
+                <i class="fa fa-circle-o-notch fa-spin me-2"/> Loading dashboard...
+            </div>
+
+            <t t-else="">
+                <!-- Celebration when every appointment of the day is done -->
+                <div t-if="state.celebrate" class="cd-confetti">
+                    <span t-foreach="confetti" t-as="c" t-key="c_index"
+                          t-att-style="'left:' + c.left + '%; background:' + c.color + '; animation-delay:' + c.delay + 's; animation-duration:' + c.dur + 's'"/>
+                    <div class="cd-celebrate">All of today's appointments are done 🎉</div>
+                </div>
+
+                <!-- ================= HERO ================= -->
+                <header class="cd-hero cd-rise" style="--i:0">
+                    <span class="cd-blob cd-blob-1"/>
+                    <span class="cd-blob cd-blob-2"/>
+                    <span class="cd-blob cd-blob-3"/>
+                    <div class="cd-hero-main">
+                        <div class="cd-hero-text">
+                            <div class="cd-hello"><t t-esc="greeting"/> <span class="cd-wave">👋</span></div>
+                            <div class="cd-date"><t t-esc="state.data.date_text"/></div>
+                            <svg class="cd-ecg" viewBox="0 0 300 40" preserveAspectRatio="none">
+                                <path d="M0 20 H80 L92 20 L100 4 L112 36 L122 20 H180 L190 20 L198 10 L206 28 L214 20 H300"/>
+                            </svg>
+                        </div>
+                        <div class="cd-hero-actions">
+                            <button class="cd-btn" t-on-click="() => this.newRecord('clinic.appointment', 'New Appointment')">
+                                <i class="fa fa-calendar-plus-o me-2"/>New Appointment
+                            </button>
+                            <button class="cd-btn" t-on-click="() => this.newRecord('clinic.queue', 'Add to Queue')">
+                                <i class="fa fa-ticket me-2"/>Add to Queue
+                            </button>
+                            <button class="cd-btn" t-on-click="() => this.newRecord('clinic.patient', 'New Patient')">
+                                <i class="fa fa-user-plus me-2"/>New Patient
+                            </button>
+                        </div>
+                    </div>
+                    <div class="cd-live">
+                        <span class="cd-dot"/> Live · updated <t t-esc="state.updated"/>
+                        <button class="cd-refresh" t-att-class="{'is-spin': state.refreshing}" t-on-click="() => this.load()" title="Refresh now">
+                            <i class="fa fa-refresh"/>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- ================= KPI CARDS ================= -->
+                <section class="cd-kpis">
+                    <div t-foreach="cards" t-as="c" t-key="c.key"
+                         t-attf-class="cd-kpi cd-tone-#{c.tone} cd-rise"
+                         t-att-style="'--i:' + (c_index + 1)"
+                         t-on-click="() => this.openCard(c.key)"
+                         t-on-mousemove="onCardMove">
+                        <div class="cd-kpi-icon"><i t-attf-class="fa #{c.icon}"/></div>
+                        <div class="cd-kpi-val"><CountUp value="c.value"/></div>
+                        <div class="cd-kpi-label" t-esc="c.label"/>
+                        <div class="cd-kpi-sub" t-esc="c.sub"/>
+                    </div>
+                </section>
+
+                <!-- ================= CHARTS ================= -->
+                <section class="cd-grid cd-grid-charts">
+                    <div class="cd-card cd-rise" style="--i:6" t-on-mousemove="onCardMove">
+                        <h3 class="cd-title"><i class="fa fa-bar-chart me-2"/>Appointments · Last 7 Days</h3>
+                        <div class="cd-bars">
+                            <div t-foreach="weekBars" t-as="b" t-key="b.date" class="cd-bar-col">
+                                <div class="cd-bar-val"><t t-esc="b.count"/></div>
+                                <div class="cd-bar-track">
+                                    <div class="cd-bar" t-att-class="{'is-today': b.today}"
+                                         t-att-style="'height:' + (state.animate ? b.pct : 0) + '%; transition-delay:' + (b_index * 80) + 'ms'"/>
+                                </div>
+                                <div class="cd-bar-lbl" t-att-class="{'is-today': b.today}"><t t-esc="b.label"/></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cd-card cd-rise" style="--i:7" t-on-mousemove="onCardMove">
+                        <h3 class="cd-title"><i class="fa fa-pie-chart me-2"/>Status · This Month</h3>
+                        <div class="cd-donut-wrap">
+                            <div class="cd-donut">
+                                <svg viewBox="0 0 140 140">
+                                    <circle cx="70" cy="70" t-att-r="donut.R" class="cd-donut-bg"/>
+                                    <g transform="rotate(-90 70 70)">
+                                        <circle t-foreach="donut.segs" t-as="s" t-key="s.key"
+                                                cx="70" cy="70" t-att-r="donut.R" class="cd-donut-seg"
+                                                t-att-style="'stroke:' + s.color + '; stroke-dasharray:' + (state.animate ? s.dash : 0) + ' ' + donut.C + '; stroke-dashoffset:' + (-s.offset)"/>
+                                    </g>
+                                </svg>
+                                <div class="cd-donut-center">
+                                    <div class="cd-donut-num"><CountUp value="donut.total"/></div>
+                                    <div class="cd-donut-cap">total</div>
+                                </div>
+                            </div>
+                            <ul class="cd-legend">
+                                <li t-foreach="donut.segs" t-as="s" t-key="s.key">
+                                    <span class="cd-swatch" t-att-style="'background:' + s.color"/>
+                                    <span class="cd-legend-name" t-esc="s.label"/>
+                                    <b><t t-esc="s.count"/></b>
+                                    <small><t t-esc="s.pct"/>%</small>
+                                </li>
+                                <li t-if="!donut.segs.length" class="cd-empty">No appointments yet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= LISTS ================= -->
+                <section class="cd-grid cd-grid-lists">
+                    <div class="cd-card cd-rise" style="--i:8" t-on-mousemove="onCardMove">
+                        <h3 class="cd-title"><i class="fa fa-ticket me-2"/>Live Queue</h3>
+                        <div t-if="!state.data.queue.length" class="cd-empty">Nobody is waiting right now ✨</div>
+                        <div t-foreach="state.data.queue" t-as="q" t-key="q.id" class="cd-row"
+                             t-on-click="() => this.openRecord('clinic.queue', q.id)">
+                            <span class="cd-token" t-esc="q.token"/>
+                            <div class="cd-row-main">
+                                <div class="cd-row-name" t-esc="q.patient"/>
+                                <div class="cd-row-sub"><t t-esc="q.doctor || 'Any doctor'"/> · <t t-esc="q.minutes"/> min</div>
+                            </div>
+                            <span t-attf-class="cd-pill cd-pill-#{q.state}">
+                                <t t-esc="q.state === 'waiting' ? 'Waiting' : 'In room'"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="cd-card cd-rise" style="--i:9" t-on-mousemove="onCardMove">
+                        <h3 class="cd-title"><i class="fa fa-clock-o me-2"/>Today's Schedule</h3>
+                        <div t-if="!state.data.schedule.length" class="cd-empty">No pending appointments today</div>
+                        <div t-foreach="state.data.schedule" t-as="a" t-key="a.id" class="cd-row"
+                             t-on-click="() => this.openRecord('clinic.appointment', a.id)">
+                            <span class="cd-time" t-esc="a.time"/>
+                            <div class="cd-row-main">
+                                <div class="cd-row-name" t-esc="a.patient"/>
+                                <div class="cd-row-sub">Dr. <t t-esc="a.doctor"/> · <t t-esc="a.name"/></div>
+                            </div>
+                            <span t-attf-class="cd-pill cd-pill-#{a.state}"><t t-esc="a.state.replace('_', ' ')"/></span>
+                        </div>
+                    </div>
+
+                    <div class="cd-card cd-rise" style="--i:10" t-on-mousemove="onCardMove">
+                        <h3 class="cd-title"><i class="fa fa-user-md me-2"/>Busiest Doctors · This Month</h3>
+                        <div t-if="!doctorBars.length" class="cd-empty">No data yet</div>
+                        <div t-foreach="doctorBars" t-as="d" t-key="d.name" class="cd-hbar">
+                            <div class="cd-hbar-head"><span t-esc="d.name"/><b t-esc="d.count"/></div>
+                            <div class="cd-hbar-track">
+                                <div class="cd-hbar-fill"
+                                     t-att-style="'width:' + (state.animate ? d.pct : 0) + '%; transition-delay:' + (d_index * 100) + 'ms'"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cd-card cd-rise" style="--i:11" t-on-mousemove="onCardMove">
+                        <h3 class="cd-title"><i class="fa fa-repeat me-2"/>Upcoming Follow-ups</h3>
+                        <div t-if="!state.data.followups.length" class="cd-empty">No follow-ups due this week ✅</div>
+                        <div t-foreach="state.data.followups" t-as="f" t-key="f.id" class="cd-row"
+                             t-on-click="() => this.openRecord('clinic.appointment', f.id)">
+                            <span class="cd-alert"><i class="fa fa-calendar"/></span>
+                            <div class="cd-row-main">
+                                <div class="cd-row-name" t-esc="f.patient"/>
+                                <div class="cd-row-sub">Dr. <t t-esc="f.doctor"/></div>
+                            </div>
+                            <span class="cd-pill"><t t-esc="f.days === 0 ? 'Today' : f.date"/></span>
+                        </div>
+                    </div>
+                </section>
+            </t>
+        </div>
+    </t>
+
+</templates>

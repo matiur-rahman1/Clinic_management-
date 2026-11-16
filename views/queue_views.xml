@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ============================================================ -->
+    <!-- SEARCH                                                       -->
+    <!-- ============================================================ -->
+    <record id="view_queue_search" model="ir.ui.view">
+        <field name="name">clinic.queue.search</field>
+        <field name="model">clinic.queue</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="token_number"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <filter name="filter_today" string="Today"
+                        domain="[('check_in_time', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <separator/>
+                <filter name="filter_waiting" string="Waiting" domain="[('state', '=', 'waiting')]"/>
+                <filter name="filter_active" string="In Consultation" domain="[('state', '=', 'in_consultation')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_doctor" string="Doctor" context="{'group_by': 'doctor_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- FORM (LED hero)                                              -->
+    <!-- ============================================================ -->
+    <record id="view_queue_form" model="ir.ui.view">
+        <field name="name">clinic.queue.form</field>
+        <field name="model">clinic.queue</field>
+        <field name="arch" type="xml">
+            <form class="qu-form">
+                <header>
+                    <button name="action_create_appointment" string="Start Appointment" type="object" class="btn-primary" invisible="state != 'waiting'"/>
+                    <button name="action_start_consultation" string="Start Consultation" type="object" class="btn-primary" invisible="state != 'waiting'"/>
+                    <button name="action_done" string="Mark as Done" type="object" class="btn-success" invisible="state != 'in_consultation'"/>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger" invisible="state in ('done', 'cancelled')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="qu-hero">
+                        <div class="qu-led"><field name="token_number" readonly="1"/></div>
+                        <div class="qu-hero-main">
+                            <div class="qu-hero-name">
+                                <span class="qu-av"><field name="patient_initials"/></span>
+                                <field name="patient_id" readonly="1" options="{'no_open': True}"/>
+                            </div>
+                            <div class="qu-hero-sub" invisible="not doctor_id">
+                                <i class="fa fa-user-md me-2"/>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/>
+                            </div>
+                            <div class="qu-chips">
+                                <span class="qu-chip"><i class="fa fa-sign-in me-1"/><field name="time_label"/></span>
+                                <span class="qu-chip qu-chip-wait" invisible="state != 'waiting'">
+                                    <i class="fa fa-hourglass-half me-1"/><field name="wait_minutes"/> min waiting
+                                </span>
+                                <span class="qu-chip" invisible="state != 'waiting' or not queue_position">
+                                    #<field name="queue_position"/> in line
+                                </span>
+                                <span class="qu-chip qu-chip-next" invisible="not is_next">NEXT UP</span>
+                                <span class="qu-chip qu-chip-live" invisible="state != 'in_consultation'">
+                                    <span class="qu-ping"/>NOW SERVING
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <group>
+                        <group string="Visit">
+                            <field name="patient_id"/>
+                            <field name="doctor_id"/>
+                        </group>
+                        <group string="Time">
+                            <field name="check_in_time"/>
+                            <field name="appointment_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- KANBAN (digital token tickets)                               -->
+    <!-- ============================================================ -->
+    <record id="view_queue_kanban" model="ir.ui.view">
+        <field name="name">clinic.queue.kanban</field>
+        <field name="model">clinic.queue</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" class="o_kanban_small_column qu-kanban">
+                <field name="token_number"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="check_in_time"/>
+                <field name="state"/>
+                <field name="patient_initials"/>
+                <field name="time_label"/>
+                <field name="wait_minutes"/>
+                <field name="wait_level"/>
+                <field name="queue_position"/>
+                <field name="is_next"/>
+                <templates>
+                    <t t-name="card">
+                        <div t-attf-class="qu-card qu-st-#{record.state.raw_value} qu-wait-#{record.wait_level.raw_value}">
+                            <div class="qu-top">
+                                <div class="qu-token"><field name="token_number"/></div>
+                                <div class="qu-tags">
+                                    <span t-if="record.is_next.raw_value" class="qu-next">NEXT</span>
+                                    <span t-if="record.state.raw_value == 'in_consultation'" class="qu-live">
+                                        <span class="qu-ping"/>NOW SERVING
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="qu-who">
+                                <span class="qu-av"><field name="patient_initials"/></span>
+                                <div class="qu-who-text">
+                                    <div class="qu-name"><field name="patient_id"/></div>
+                                    <div class="qu-doc" t-if="record.doctor_id.raw_value">Dr. <field name="doctor_id"/></div>
+                                </div>
+                            </div>
+
+                            <div class="qu-meta">
+                                <span><i class="fa fa-sign-in me-1"/><field name="time_label"/></span>
+                                <span t-if="record.state.raw_value == 'waiting'" class="qu-wait">
+                                    <i class="fa fa-hourglass-half me-1"/><field name="wait_minutes"/> min
+                                </span>
+                                <span t-if="record.state.raw_value == 'waiting' &amp;&amp; record.queue_position.raw_value" class="qu-pos">
+                                    #<field name="queue_position"/> in line
+                                </span>
+                            </div>
+
+                            <div class="qu-actions">
+                                <button t-if="record.state.raw_value == 'waiting'" type="object" name="action_create_appointment" class="btn btn-sm qu-btn">
+                                    <i class="fa fa-bullhorn me-1"/>Call in
+                                </button>
+                                <button t-if="record.state.raw_value == 'in_consultation'" type="object" name="action_done" class="btn btn-sm qu-btn">
+                                    <i class="fa fa-check me-1"/>Finish
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- LIST                                                         -->
+    <!-- ============================================================ -->
+    <record id="view_queue_list" model="ir.ui.view">
+        <field name="name">clinic.queue.list</field>
+        <field name="model">clinic.queue</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state in ('done', 'cancelled')" decoration-danger="wait_level == 'bad'" decoration-warning="wait_level == 'warn'">
+                <field name="wait_level" column_invisible="1"/>
+                <field name="token_number"/>
+                <field name="patient_id"/>
+                <field name="doctor_id"/>
+                <field name="check_in_time"/>
+                <field name="wait_minutes" string="Waiting (min)"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state == 'waiting'"
+                       decoration-info="state == 'in_consultation'"
+                       decoration-success="state == 'done'"
+                       decoration-danger="state == 'cancelled'"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Queue Action -->
+    <record id="action_clinic_queue" model="ir.actions.act_window">
+        <field name="name">Patient Queue</field>
+        <field name="res_model">clinic.queue</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_queue_search"/>
+        <field name="context">{'search_default_filter_today': 1}</field>
+    </record>
+
+    <!-- Queue Menu -->
+    <menuitem id="menu_clinic_queue" name="Patient Queue" parent="menu_clinic_root" action="action_clinic_queue" sequence="5"/>
+
+</odoo>

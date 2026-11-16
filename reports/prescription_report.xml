@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_prescription" model="ir.actions.report">
+        <field name="name">Prescription (Rx)</field>
+        <field name="model">clinic.appointment</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">clinic_management.report_prescription_document</field>
+        <field name="report_file">clinic_management.report_prescription_document</field>
+        <field name="print_report_name">'Rx - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_clinic_appointment"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_prescription_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-set="company" t-value="res_company"/>
+                <t t-set="doc" t-value="o.doctor_id"/>
+                <div class="article">
+                    <div class="page" style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #1f2937;">
+
+                        <!-- Letterhead -->
+                        <table style="width: 100%; border-bottom: 3px solid #0f766e; padding-bottom: 8px; margin-bottom: 10px;">
+                            <tr>
+                                <td style="vertical-align: top; width: 55%;">
+                                    <div style="font-size: 20px; font-weight: bold; color: #0f766e;">Dr. <span t-out="doc.name"/></div>
+                                    <div t-if="doc.qualifications" style="font-size: 12px;"><t t-out="doc.qualifications"/></div>
+                                    <div t-if="doc.specialty" style="font-size: 12px; color: #6b7280;"><t t-out="dict(doc._fields['specialty'].selection).get(doc.specialty, '')"/></div>
+                                    <div t-if="doc.reg_no" style="font-size: 11px; color: #6b7280;">Reg. No: <t t-out="doc.reg_no"/></div>
+                                </td>
+                                <td style="vertical-align: top; text-align: right;">
+                                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="max-height: 44px; margin-bottom: 4px;"/>
+                                    <div style="font-weight: bold;"><t t-out="company.name"/></div>
+                                    <div style="font-size: 11px; color: #6b7280;">
+                                        <t t-if="company.street"><t t-out="company.street"/><br/></t>
+                                        <t t-if="company.phone">Tel: <t t-out="company.phone"/></t>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Patient strip -->
+                        <table style="width: 100%; background: #f0fdfa; border: 1px solid #99f6e4; margin-bottom: 14px;">
+                            <tr>
+                                <td style="padding: 6px 10px;"><strong>Patient:</strong> <t t-out="o.patient_id.name"/></td>
+                                <td style="padding: 6px 10px;"><strong>Age:</strong> <t t-out="o.patient_id.age or '-'"/></td>
+                                <td style="padding: 6px 10px;"><strong>Blood:</strong> <t t-out="o.patient_id.blood_group or '-'"/></td>
+                                <td style="padding: 6px 10px; text-align: right;"><strong>Date:</strong> <span t-field="o.appointment_date" t-options="{'widget': 'date'}"/></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 10px 6px;"><strong>Patient ID:</strong> <t t-out="o.patient_id.patient_id or '-'"/></td>
+                                <td style="padding: 0 10px 6px;" colspan="2"><strong>Phone:</strong> <t t-out="o.patient_id.phone or '-'"/></td>
+                                <td style="padding: 0 10px 6px; text-align: right;"><strong>Ref:</strong> <t t-out="o.name"/></td>
+                            </tr>
+                        </table>
+
+                        <table style="width: 100%;">
+                            <tr>
+                                <!-- Left: clinical -->
+                                <td style="width: 32%; vertical-align: top; padding-right: 14px; border-right: 1px solid #d1d5db;">
+                                    <div t-if="o.chief_complaint" style="margin-bottom: 14px;">
+                                        <div style="font-weight: bold; color: #0f766e; text-transform: uppercase; font-size: 11px;">Chief complaint</div>
+                                        <div style="white-space: pre-line;"><t t-out="o.chief_complaint"/></div>
+                                    </div>
+                                    <div t-if="o.diagnosis" style="margin-bottom: 14px;">
+                                        <div style="font-weight: bold; color: #0f766e; text-transform: uppercase; font-size: 11px;">Diagnosis</div>
+                                        <div style="white-space: pre-line;"><t t-out="o.diagnosis"/></div>
+                                    </div>
+                                    <div t-if="o.investigation_ids" style="margin-bottom: 14px;">
+                                        <div style="font-weight: bold; color: #0f766e; text-transform: uppercase; font-size: 11px;">Investigations</div>
+                                        <ul style="padding-left: 16px; margin: 2px 0;">
+                                            <li t-foreach="o.investigation_ids" t-as="t"><t t-out="t.name"/></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                                <!-- Right: Rx -->
+                                <td style="vertical-align: top; padding-left: 14px;">
+                                    <div style="font-size: 26px; font-weight: bold; color: #0f766e; font-family: Georgia, serif;">Rx</div>
+                                    <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
+                                        <t t-foreach="o.prescription_ids" t-as="line">
+                                            <tr>
+                                                <td style="width: 22px; vertical-align: top; padding: 6px 0; font-weight: bold;"><t t-out="line_index + 1"/>.</td>
+                                                <td style="padding: 6px 0; border-bottom: 1px dotted #d1d5db;">
+                                                    <div style="font-weight: bold;"><t t-out="line.line_title"/></div>
+                                                    <div>
+                                                        <t t-out="line.dosage"/>
+                                                        <t t-if="line.duration"> &#8212; <t t-out="line.duration"/></t>
+                                                    </div>
+                                                    <div t-if="line.instructions" style="font-size: 11px; color: #6b7280; font-style: italic;"><t t-out="line.instructions"/></div>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </table>
+                                    <div t-if="o.advice" style="margin-top: 16px;">
+                                        <div style="font-weight: bold; color: #0f766e; text-transform: uppercase; font-size: 11px;">Advice</div>
+                                        <div style="white-space: pre-line;"><t t-out="o.advice"/></div>
+                                    </div>
+                                    <div t-if="o.follow_up_date" style="margin-top: 14px; padding: 6px 10px; background: #f0fdfa; border: 1px solid #99f6e4; display: inline-block;">
+                                        <strong>Follow-up:</strong> <span t-field="o.follow_up_date"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Signature -->
+                        <div style="margin-top: 50px; text-align: right;">
+                            <img t-if="doc.signature" t-att-src="image_data_uri(doc.signature)" style="max-height: 70px; max-width: 200px;"/>
+                            <div style="display: inline-block; border-top: 1px solid #1f2937; padding-top: 3px; min-width: 180px; text-align: center;">
+                                Dr. <t t-out="doc.name"/>
+                            </div>
+                        </div>
+                        <div style="margin-top: 24px; text-align: center; font-size: 10px; color: #9ca3af;">
+                            This prescription is valid only with the doctor's signature. Medicines are not dispensed by this clinic.
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
