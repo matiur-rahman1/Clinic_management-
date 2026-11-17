@@ -28,6 +28,9 @@
                 <sheet>
                     <field name="is_today" invisible="1"/>
                     <field name="is_overdue" invisible="1"/>
+                    <field name="has_vitals" invisible="1"/>
+                    <field name="vital_alert" invisible="1"/>
+                    <field name="allergy_warning" invisible="1"/>
 
                     <div class="ap-hero">
                         <div class="ap-ticket" invisible="not appointment_date">
@@ -35,23 +38,44 @@
                             <div class="ap-day"><field name="day_label"/></div>
                         </div>
                         <div class="ap-hero-main">
-                            <div class="ap-ref"><i class="fa fa-ticket me-2"/><field name="name" readonly="1"/></div>
+                            <div class="ap-ref"><i class="fa fa-ticket me-2" title="Reference"/><field name="name" readonly="1"/></div>
                             <div class="ap-people">
                                 <span class="ap-person">
                                     <span class="ap-av"><field name="patient_initials"/></span>
                                     <field name="patient_id" readonly="1" options="{'no_open': True}"/>
                                 </span>
-                                <i class="fa fa-long-arrow-right ap-arrow"/>
+                                <i class="fa fa-long-arrow-right ap-arrow" title="To"/>
                                 <span class="ap-person">
                                     <span class="ap-av ap-av-doc"><field name="doctor_initials"/></span>
                                     <span>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/></span>
                                 </span>
                             </div>
                             <div class="ap-chips">
-                                <span class="ap-chip ap-chip-today" invisible="not is_today"><i class="fa fa-star me-1"/>Today</span>
-                                <span class="ap-chip ap-chip-late" invisible="not is_overdue"><i class="fa fa-exclamation-circle me-1"/>Overdue</span>
-                                <span class="ap-chip"><i class="fa fa-hourglass-half me-1"/><field name="duration" readonly="1"/> h</span>
+                                <span class="ap-chip ap-chip-today" invisible="not is_today"><i class="fa fa-star me-1" title="Today"/>Today</span>
+                                <span class="ap-chip ap-chip-late" invisible="not is_overdue"><i class="fa fa-exclamation-circle me-1" title="Overdue"/>Overdue</span>
+                                <span class="ap-chip"><i class="fa fa-hourglass-half me-1" title="Duration"/><field name="duration" readonly="1"/> h</span>
+                                <span class="ap-chip" invisible="not bp_display"><i class="fa fa-heartbeat me-1" title="Blood Pressure"/>BP <field name="bp_display" readonly="1"/></span>
+                                <span class="ap-chip" invisible="not bmi"><i class="fa fa-balance-scale me-1" title="BMI"/>BMI <field name="bmi" readonly="1"/></span>
+                                <span class="ap-chip" invisible="not spo2"><i class="fa fa-tint me-1" title="SpO2"/>SpO₂ <field name="spo2" readonly="1"/>%</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Drug-Allergy Safety Guard Banner -->
+                    <div class="alert alert-danger d-flex align-items-center gap-2 mb-3" role="alert" invisible="not allergy_warning">
+                        <i class="fa fa-exclamation-triangle fa-lg" title="Allergy Alert"/>
+                        <div>
+                            <strong>Drug-Allergy Contraindication Alert:</strong> Prescribed medication conflicts with patient's recorded allergy —
+                            <field name="allergy_warning" readonly="1" class="fw-bold d-inline"/>
+                        </div>
+                    </div>
+
+                    <!-- Abnormal Vital Signs Triage Banner -->
+                    <div class="alert alert-warning d-flex align-items-center gap-2 mb-3" role="alert" invisible="not vital_alert">
+                        <i class="fa fa-heartbeat fa-lg" title="Vital Alert"/>
+                        <div>
+                            <strong>Abnormal Vitals Flagged:</strong>
+                            <field name="vital_alert" readonly="1" class="fw-semibold d-inline"/>
                         </div>
                     </div>
 
@@ -66,11 +90,36 @@
                         </group>
                     </group>
                     <notebook>
+                        <page string="Vitals &amp; Triage" name="vitals">
+                            <group>
+                                <group string="Cardiorespiratory Vitals">
+                                    <field name="bp_systolic" placeholder="120"/>
+                                    <field name="bp_diastolic" placeholder="80"/>
+                                    <field name="bp_display" readonly="1" invisible="not bp_display"/>
+                                    <field name="pulse" placeholder="72"/>
+                                    <field name="temperature" placeholder="98.6"/>
+                                    <field name="spo2" placeholder="98"/>
+                                </group>
+                                <group string="Anthropometry &amp; BMI">
+                                    <field name="weight" placeholder="68.5"/>
+                                    <field name="height" placeholder="170"/>
+                                    <field name="bmi" readonly="1"/>
+                                    <field name="bmi_status" widget="badge" readonly="1"
+                                           decoration-info="bmi_status == 'underweight'"
+                                           decoration-success="bmi_status == 'normal'"
+                                           decoration-warning="bmi_status == 'overweight'"
+                                           decoration-danger="bmi_status == 'obese'"/>
+                                </group>
+                            </group>
+                        </page>
                         <page string="Consultation" name="consultation" groups="clinic_management.group_clinic_doctor">
                             <group>
                                 <group string="Presenting problem">
                                     <field name="chief_complaint" placeholder="e.g. Fever and sore throat for 3 days"/>
                                     <field name="diagnosis" placeholder="e.g. Acute tonsillitis"/>
+                                </group>
+                                <group string="Quick Clinical Protocol">
+                                    <field name="rx_template_id" placeholder="Select a protocol to auto-fill Rx &amp; diagnosis..." options="{'no_create': True}"/>
                                 </group>
                             </group>
                             <group string="Clinical notes">
@@ -78,6 +127,14 @@
                             </group>
                         </page>
                         <page string="Prescription (Rx)" name="rx" groups="clinic_management.group_clinic_doctor">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 p-2 rounded" style="background:#f8fafc;border:1px solid #e2e8f0;">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-magic text-primary" title="Protocol"/>
+                                    <span class="fw-semibold small text-muted">Load Rx Protocol:</span>
+                                    <field name="rx_template_id" nolabel="1" placeholder="Choose protocol (e.g. Viral Fever)..." class="mb-0" style="min-width:260px;" options="{'no_create': True}"/>
+                                </div>
+                                <button name="action_save_as_rx_template" type="object" string="Save Current Rx as Protocol" icon="fa-bookmark-o" class="btn btn-sm btn-outline-secondary" invisible="not prescription_ids"/>
+                            </div>
                             <field name="prescription_ids">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
@@ -171,10 +228,10 @@
                                     <span class="ap-nm">Dr. <field name="doctor_id"/></span>
                                 </div>
                                 <div class="ap-foot">
-                                    <span><i class="fa fa-hourglass-half me-1"/><field name="duration"/> h</span>
+                                    <span><i class="fa fa-hourglass-half me-1" title="Duration"/><field name="duration"/> h</span>
                                     <span t-if="record.is_overdue.raw_value" class="ap-late">Overdue</span>
                                     <span t-if="record.payment_state.raw_value == 'paid'" class="ap-paid">
-                                        <i class="fa fa-check-circle me-1"/>Paid
+                                        <i class="fa fa-check-circle me-1" title="Paid"/>Paid
                                     </span>
                                 </div>
                             </div>
@@ -198,6 +255,8 @@
                 <field name="patient_id"/>
                 <field name="doctor_id"/>
                 <field name="appointment_date"/>
+                <field name="bp_display" optional="show"/>
+                <field name="bmi" optional="show"/>
                 <field name="duration" optional="hide"/>
                 <field name="state" widget="badge"
                        decoration-info="state == 'draft'"

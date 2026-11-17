@@ -45,7 +45,7 @@
                                                options="{'size': [76, 76]}"/>
                                     </t>
                                     <t t-else="">
-                                        <div class="cl-avatar-ph"><i class="fa fa-user-md"/></div>
+                                        <div class="cl-avatar-ph"><i class="fa fa-user-md" title="Doctor"/></div>
                                     </t>
                                 </div>
 
@@ -61,12 +61,12 @@
                                     <div><b><field name="today_count"/></b><small>Today</small></div>
                                     <div><b><field name="consultation_fee"/></b><small>Fee</small></div>
                                     <div t-if="record.phone.raw_value">
-                                        <b><i class="fa fa-phone"/></b><small><field name="phone"/></small>
+                                        <b><i class="fa fa-phone" title="Phone"/></b><small><field name="phone"/></small>
                                     </div>
                                 </div>
 
                                 <button type="object" name="action_book_appointment" class="btn cl-book-btn">
-                                    <i class="fa fa-calendar-plus-o me-1"/> Book appointment
+                                    <i class="fa fa-calendar-plus-o me-1" title="Book"/> Book appointment
                                 </button>
                             </div>
                         </div>
@@ -130,7 +130,7 @@
                         <div class="cl-hero-main">
                             <h1><field name="name" placeholder="Doctor Name"/></h1>
                             <div class="cl-hero-tags">
-                                <span class="cl-hero-chip"><i class="fa fa-stethoscope me-1"/><field name="specialty" readonly="1"/></span>
+                                <span class="cl-hero-chip"><i class="fa fa-stethoscope me-1" title="Specialty"/><field name="specialty" readonly="1"/></span>
                                 <span class="cl-hero-chip cl-on" invisible="not available_now">
                                     <span class="cl-dot on"/><field name="availability_label"/>
                                 </span>

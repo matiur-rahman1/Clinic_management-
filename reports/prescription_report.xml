@@ -58,6 +58,15 @@
                             <tr>
                                 <!-- Left: clinical -->
                                 <td style="width: 32%; vertical-align: top; padding-right: 14px; border-right: 1px solid #d1d5db;">
+                                    <div t-if="o.has_vitals" style="margin-bottom: 14px; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;">
+                                        <div style="font-weight: bold; color: #0f766e; text-transform: uppercase; font-size: 11px; margin-bottom: 4px;">Vitals</div>
+                                        <div t-if="o.bp_display" style="font-size: 12px;"><strong>BP:</strong> <t t-out="o.bp_display"/></div>
+                                        <div t-if="o.pulse" style="font-size: 12px;"><strong>Pulse:</strong> <t t-out="o.pulse"/> bpm</div>
+                                        <div t-if="o.temperature" style="font-size: 12px;"><strong>Temp:</strong> <t t-out="o.temperature"/> °F</div>
+                                        <div t-if="o.spo2" style="font-size: 12px;"><strong>SpO₂:</strong> <t t-out="o.spo2"/>%</div>
+                                        <div t-if="o.weight" style="font-size: 12px;"><strong>Weight:</strong> <t t-out="o.weight"/> kg</div>
+                                        <div t-if="o.bmi" style="font-size: 12px;"><strong>BMI:</strong> <t t-out="o.bmi"/></div>
+                                    </div>
                                     <div t-if="o.chief_complaint" style="margin-bottom: 14px;">
                                         <div style="font-weight: bold; color: #0f766e; text-transform: uppercase; font-size: 11px;">Chief complaint</div>
                                         <div style="white-space: pre-line;"><t t-out="o.chief_complaint"/></div>

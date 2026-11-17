@@ -221,6 +221,10 @@ export class ClinicDashboard extends Component {
             target: "current",
         });
     }
+
+    openTvDisplay() {
+        window.open("/clinic/tv", "_blank");
+    }
 }
 
 registry.category("actions").add("clinic_dashboard", ClinicDashboard);

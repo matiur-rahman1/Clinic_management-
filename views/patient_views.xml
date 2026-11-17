@@ -45,9 +45,9 @@
                     <t t-name="card">
                         <div t-attf-class="cl-pat-card cl-tone-#{record.id.raw_value % 6}">
                             <div class="cl-pat-band">
-                                <span class="cl-pat-band-id"><i class="fa fa-id-badge me-1"/><field name="patient_id"/></span>
+                                <span class="cl-pat-band-id"><i class="fa fa-id-badge me-1" title="Patient ID"/><field name="patient_id"/></span>
                                 <span t-if="record.blood_group.raw_value" class="cl-blood">
-                                    <i class="fa fa-tint"/> <field name="blood_group"/>
+                                    <i class="fa fa-tint" title="Blood Group"/> <field name="blood_group"/>
                                 </span>
                             </div>
 
@@ -64,17 +64,17 @@
                                     <div class="cl-pat-title">
                                         <div class="cl-pat-name"><field name="name"/></div>
                                         <div class="cl-pat-age" t-if="record.age.raw_value">
-                                            <i class="fa fa-birthday-cake me-1"/><field name="age"/> yrs
+                                            <i class="fa fa-birthday-cake me-1" title="Age"/><field name="age"/> yrs
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="cl-pat-tags">
                                     <span t-if="record.has_allergy.raw_value" class="cl-tag cl-tag-warn">
-                                        <i class="fa fa-exclamation-triangle me-1"/>Allergy
+                                        <i class="fa fa-exclamation-triangle me-1" title="Allergy"/>Allergy
                                     </span>
                                     <span t-if="record.has_chronic.raw_value" class="cl-tag cl-tag-chronic">
-                                        <i class="fa fa-heartbeat me-1"/>Chronic
+                                        <i class="fa fa-heartbeat me-1" title="Chronic"/>Chronic
                                     </span>
                                     <span t-if="record.amount_due.raw_value &gt; 0" class="cl-tag cl-tag-due">
                                         Due <field name="amount_due"/>
@@ -104,10 +104,10 @@
 
                                 <div class="cl-pat-foot">
                                     <span class="cl-pat-phone" t-if="record.phone.raw_value">
-                                        <i class="fa fa-phone me-1"/><field name="phone"/>
+                                        <i class="fa fa-phone me-1" title="Phone"/><field name="phone"/>
                                     </span>
                                     <button type="object" name="action_book_appointment" class="btn btn-sm cl-pat-book">
-                                        <i class="fa fa-calendar-plus-o me-1"/>Book
+                                        <i class="fa fa-calendar-plus-o me-1" title="Book"/>Book
                                     </button>
                                 </div>
                             </div>
@@ -182,17 +182,19 @@
                         <div class="cl-hero-main">
                             <h1><field name="name" placeholder="Patient Name"/></h1>
                             <div class="cl-hero-tags">
-                                <span class="cl-hero-chip"><i class="fa fa-id-card-o me-2"/><field name="patient_id" readonly="1"/></span>
-                                <span class="cl-hero-chip" invisible="not age"><i class="fa fa-birthday-cake me-2"/><field name="age" readonly="1"/>&#160;yrs</span>
-                                <span class="cl-hero-chip" invisible="not blood_group"><i class="fa fa-tint me-2"/><field name="blood_group" readonly="1"/></span>
-                                <span class="cl-hero-chip cl-chip-warn" invisible="not has_allergy"><i class="fa fa-exclamation-triangle me-2"/>Allergy</span>
-                                <span class="cl-hero-chip cl-chip-chronic" invisible="not has_chronic"><i class="fa fa-heartbeat me-2"/>Chronic condition</span>
+                                <span class="cl-hero-chip"><i class="fa fa-id-card-o me-2" title="Patient ID"/><field name="patient_id" readonly="1"/></span>
+                                <span class="cl-hero-chip" invisible="not age"><i class="fa fa-birthday-cake me-2" title="Age"/><field name="age" readonly="1"/>&#160;yrs</span>
+                                <span class="cl-hero-chip" invisible="not blood_group"><i class="fa fa-tint me-2" title="Blood Group"/><field name="blood_group" readonly="1"/></span>
+                                <span class="cl-hero-chip" invisible="not last_bp"><i class="fa fa-heartbeat me-2" title="Latest BP"/>BP <field name="last_bp" readonly="1"/></span>
+                                <span class="cl-hero-chip" invisible="not last_bmi"><i class="fa fa-balance-scale me-2" title="Latest BMI"/>BMI <field name="last_bmi" readonly="1"/></span>
+                                <span class="cl-hero-chip cl-chip-warn" invisible="not has_allergy"><i class="fa fa-exclamation-triangle me-2" title="Allergy"/>Allergy</span>
+                                <span class="cl-hero-chip cl-chip-chronic" invisible="not has_chronic"><i class="fa fa-heartbeat me-2" title="Chronic"/>Chronic condition</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="cl-alert-strip" invisible="not has_allergy">
-                        <i class="fa fa-exclamation-triangle"/>
+                        <i class="fa fa-exclamation-triangle" title="Allergies"/>
                         <b>Allergies:</b>
                         <field name="allergies" readonly="1" nolabel="1"/>
                     </div>
@@ -233,6 +235,9 @@
                                 <list>
                                     <field name="appointment_date"/>
                                     <field name="doctor_id"/>
+                                    <field name="bp_display" optional="show"/>
+                                    <field name="bmi" optional="show"/>
+                                    <field name="diagnosis" optional="show"/>
                                     <field name="state" widget="badge"
                                            decoration-success="state == 'done'"
                                            decoration-info="state in ('confirmed', 'in_progress')"

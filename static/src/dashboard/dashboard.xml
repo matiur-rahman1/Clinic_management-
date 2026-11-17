@@ -43,6 +43,9 @@
                             <button class="cd-btn" t-on-click="() => this.newRecord('clinic.patient', 'New Patient')">
                                 <i class="fa fa-user-plus me-2"/>New Patient
                             </button>
+                            <button class="cd-btn" t-on-click="() => this.openTvDisplay()" title="Open Waiting Room TV Display with Voice Callout">
+                                <i class="fa fa-television me-2"/>Lobby TV Display
+                            </button>
                         </div>
                     </div>
                     <div class="cd-live">

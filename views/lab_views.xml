@@ -44,16 +44,16 @@
                         <span class="lb-bubble lb-bubble-1"/>
                         <span class="lb-bubble lb-bubble-2"/>
                         <span class="lb-bubble lb-bubble-3"/>
-                        <div class="lb-hero-icon"><i class="fa fa-flask"/></div>
+                        <div class="lb-hero-icon"><i class="fa fa-flask" title="Lab Test"/></div>
                         <div class="lb-hero-main">
                             <h1><field name="name" placeholder="Blood Test / X-Ray"/></h1>
                             <div class="lb-chips">
-                                <span class="lb-chip"><i class="fa fa-user me-2"/><field name="patient_id" readonly="1" options="{'no_open': True}"/></span>
-                                <span class="lb-chip" invisible="not doctor_id"><i class="fa fa-user-md me-2"/>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/></span>
-                                <span class="lb-chip lb-chip-stat" invisible="priority != 'urgent'"><i class="fa fa-bolt me-1"/>STAT</span>
-                                <span class="lb-chip lb-chip-high" invisible="result_flag != 'high'"><i class="fa fa-arrow-up me-1"/>High</span>
-                                <span class="lb-chip lb-chip-low" invisible="result_flag != 'low'"><i class="fa fa-arrow-down me-1"/>Low</span>
-                                <span class="lb-chip lb-chip-ok" invisible="result_flag != 'normal'"><i class="fa fa-check me-1"/>Normal</span>
+                                <span class="lb-chip"><i class="fa fa-user me-2" title="Patient"/><field name="patient_id" readonly="1" options="{'no_open': True}"/></span>
+                                <span class="lb-chip" invisible="not doctor_id"><i class="fa fa-user-md me-2" title="Doctor"/>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/></span>
+                                <span class="lb-chip lb-chip-stat" invisible="priority != 'urgent'"><i class="fa fa-bolt me-1" title="Urgent"/>STAT</span>
+                                <span class="lb-chip lb-chip-high" invisible="result_flag != 'high'"><i class="fa fa-arrow-up me-1" title="High"/>High</span>
+                                <span class="lb-chip lb-chip-low" invisible="result_flag != 'low'"><i class="fa fa-arrow-down me-1" title="Low"/>Low</span>
+                                <span class="lb-chip lb-chip-ok" invisible="result_flag != 'normal'"><i class="fa fa-check me-1" title="Normal"/>Normal</span>
                             </div>
                         </div>
                         <div class="lb-hero-val" invisible="result_flag == 'none'">
@@ -113,7 +113,7 @@
                         <div t-attf-class="lb-card lb-flag-#{record.result_flag.raw_value}"
                              t-att-style="'--pos:' + record.range_pct.raw_value + '%'">
                             <div class="lb-band">
-                                <i class="fa fa-flask lb-icon"/>
+                                <i class="fa fa-flask lb-icon" title="Lab Test"/>
                                 <span class="lb-name"><field name="name"/></span>
                                 <span t-if="record.priority.raw_value == 'urgent'" class="lb-stat">STAT</span>
                             </div>

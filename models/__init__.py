@@ -9,3 +9,4 @@ from . import lab_test
 from . import doctor_schedule
 from . import dashboard
 from . import appointment_ui
+from . import rx_template

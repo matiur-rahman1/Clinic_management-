@@ -20,3 +20,7 @@ access_clinic_appointment_portal,clinic.appointment.portal,model_clinic_appointm
 access_clinic_prescription_portal,clinic.prescription.portal,model_clinic_prescription_line,base.group_portal,1,0,0,0
 access_clinic_medicine_portal,clinic.medicine.portal,model_clinic_medicine,base.group_portal,1,0,0,0
 access_clinic_lab_test_portal,clinic.lab.test.portal,model_clinic_lab_test,base.group_portal,1,0,0,0
+access_clinic_rx_template_rec,clinic.rx.template.rec,model_clinic_rx_template,group_clinic_receptionist,1,0,0,0
+access_clinic_rx_template_doc,clinic.rx.template.doc,model_clinic_rx_template,group_clinic_doctor,1,1,1,1
+access_clinic_rx_template_line_rec,clinic.rx.template.line.rec,model_clinic_rx_template_line,group_clinic_receptionist,1,0,0,0
+access_clinic_rx_template_line_doc,clinic.rx.template.line.doc,model_clinic_rx_template_line,group_clinic_doctor,1,1,1,1

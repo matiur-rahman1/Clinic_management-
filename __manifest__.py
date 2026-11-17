@@ -14,6 +14,7 @@
         'data/queue_sequence.xml',
         'data/appointment_reminder_template.xml',
         'data/appointment_reminder_cron.xml',
+        'data/rx_template_data.xml',
         'reports/appointment_report.xml',
         'reports/prescription_report.xml',
         'views/doctor_views.xml',
@@ -25,6 +26,7 @@
         'views/lab_views.xml',
         'views/portal_templates.xml',
         'views/website_templates.xml',
+        'views/tv_display_templates.xml',
     ],
     'assets': {
         'web.assets_backend': [

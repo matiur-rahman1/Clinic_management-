@@ -49,12 +49,12 @@
                                 <field name="patient_id" readonly="1" options="{'no_open': True}"/>
                             </div>
                             <div class="qu-hero-sub" invisible="not doctor_id">
-                                <i class="fa fa-user-md me-2"/>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/>
+                                <i class="fa fa-user-md me-2" title="Doctor"/>Dr. <field name="doctor_id" readonly="1" options="{'no_open': True}"/>
                             </div>
                             <div class="qu-chips">
-                                <span class="qu-chip"><i class="fa fa-sign-in me-1"/><field name="time_label"/></span>
+                                <span class="qu-chip"><i class="fa fa-sign-in me-1" title="Check-in"/><field name="time_label"/></span>
                                 <span class="qu-chip qu-chip-wait" invisible="state != 'waiting'">
-                                    <i class="fa fa-hourglass-half me-1"/><field name="wait_minutes"/> min waiting
+                                    <i class="fa fa-hourglass-half me-1" title="Waiting"/><field name="wait_minutes"/> min waiting
                                 </span>
                                 <span class="qu-chip" invisible="state != 'waiting' or not queue_position">
                                     #<field name="queue_position"/> in line
@@ -123,9 +123,9 @@
                             </div>
 
                             <div class="qu-meta">
-                                <span><i class="fa fa-sign-in me-1"/><field name="time_label"/></span>
+                                <span><i class="fa fa-sign-in me-1" title="Check-in"/><field name="time_label"/></span>
                                 <span t-if="record.state.raw_value == 'waiting'" class="qu-wait">
-                                    <i class="fa fa-hourglass-half me-1"/><field name="wait_minutes"/> min
+                                    <i class="fa fa-hourglass-half me-1" title="Waiting"/><field name="wait_minutes"/> min
                                 </span>
                                 <span t-if="record.state.raw_value == 'waiting' &amp;&amp; record.queue_position.raw_value" class="qu-pos">
                                     #<field name="queue_position"/> in line
@@ -134,10 +134,10 @@
 
                             <div class="qu-actions">
                                 <button t-if="record.state.raw_value == 'waiting'" type="object" name="action_create_appointment" class="btn btn-sm qu-btn">
-                                    <i class="fa fa-bullhorn me-1"/>Call in
+                                    <i class="fa fa-bullhorn me-1" title="Call in"/>Call in
                                 </button>
                                 <button t-if="record.state.raw_value == 'in_consultation'" type="object" name="action_done" class="btn btn-sm qu-btn">
-                                    <i class="fa fa-check me-1"/>Finish
+                                    <i class="fa fa-check me-1" title="Finish"/>Finish
                                 </button>
                             </div>
                         </div>
@@ -181,5 +181,13 @@
 
     <!-- Queue Menu -->
     <menuitem id="menu_clinic_queue" name="Patient Queue" parent="menu_clinic_root" action="action_clinic_queue" sequence="5"/>
+
+    <!-- Lobby TV Display URL Action & Menu -->
+    <record id="action_clinic_tv_display" model="ir.actions.act_url">
+        <field name="name">Lobby TV Display</field>
+        <field name="url">/clinic/tv</field>
+        <field name="target">new</field>
+    </record>
+    <menuitem id="menu_clinic_tv_display" name="Lobby TV Display" parent="menu_clinic_root" action="action_clinic_tv_display" sequence="6"/>
 
 </odoo>

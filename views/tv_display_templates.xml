@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="clinic_tv_display" name="Clinic Waiting Room TV Display">
+        <t t-call="website.layout">
+            <t t-set="additional_title">Live Queue Display · <t t-out="clinic_name"/></t>
+            <t t-set="no_header" t-value="True"/>
+            <t t-set="no_footer" t-value="True"/>
+
+            <style>
+                #wrapwrap, #wrap { background: #060b11 !important; min-height: 100vh; }
+                .tv-root {
+                    min-height: 100vh;
+                    display: flex;
+                    flex-direction: column;
+                    background:
+                        radial-gradient(900px 500px at 15% 0%, rgba(62, 240, 176, 0.11), transparent 65%),
+                        radial-gradient(800px 500px at 90% 100%, rgba(59, 130, 246, 0.12), transparent 65%),
+                        #060b11;
+                    color: #f1f5f9;
+                    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                    padding: 20px 28px 14px;
+                    overflow-x: hidden;
+                }
+                .tv-top {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 20px;
+                    padding: 16px 24px;
+                    border-radius: 20px;
+                    background: rgba(19, 28, 38, 0.85);
+                    border: 1px solid #1e2d3d;
+                    box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.8);
+                    margin-bottom: 22px;
+                }
+                .tv-brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 14px;
+                }
+                .tv-brand-icon {
+                    width: 48px; height: 48px;
+                    border-radius: 14px;
+                    display: grid; place-items: center;
+                    font-size: 1.4rem;
+                    color: #06140f;
+                    background: linear-gradient(135deg, #3ef0b0, #10b981);
+                    box-shadow: 0 0 24px rgba(62, 240, 176, 0.45);
+                }
+                .tv-brand-title { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+                .tv-brand-sub { font-size: 0.8rem; color: #94a3b8; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+                .tv-live-dot {
+                    width: 8px; height: 8px; border-radius: 50%; background: #3ef0b0;
+                    box-shadow: 0 0 10px #3ef0b0;
+                    animation: tvPulse 1.6s infinite;
+                }
+                @keyframes tvPulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.35); opacity: 0.55; }
+                }
+                @keyframes tvCallFlash {
+                    0%, 100% { box-shadow: 0 0 0 2px #3ef0b0, 0 0 36px rgba(62, 240, 176, 0.45); transform: scale(1); }
+                    50% { box-shadow: 0 0 0 4px #ffb020, 0 0 55px rgba(255, 176, 32, 0.75); transform: scale(1.015); }
+                }
+                .tv-clock-box { text-align: right; }
+                .tv-clock {
+                    font-family: "Courier New", ui-monospace, monospace;
+                    font-size: 1.9rem;
+                    font-weight: 800;
+                    color: #3ef0b0;
+                    line-height: 1.05;
+                    text-shadow: 0 0 16px rgba(62, 240, 176, 0.35);
+                }
+                .tv-date { font-size: 0.82rem; color: #94a3b8; font-weight: 600; }
+                .tv-controls { display: flex; align-items: center; gap: 10px; }
+                .tv-btn {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    padding: 8px 15px; border-radius: 999px;
+                    font-size: 0.82rem; font-weight: 700;
+                    color: #e2e8f0; background: #162230;
+                    border: 1px solid #293b4f;
+                    cursor: pointer; text-decoration: none;
+                    transition: all 0.2s;
+                }
+                .tv-btn:hover { border-color: #3ef0b0; color: #3ef0b0; background: rgba(62, 240, 176, 0.08); }
+                .tv-btn.is-active { background: rgba(62, 240, 176, 0.16); border-color: #3ef0b0; color: #3ef0b0; }
+
+                .tv-grid {
+                    flex: 1;
+                    display: grid;
+                    grid-template-columns: 1.25fr 1fr;
+                    gap: 24px;
+                    min-height: 0;
+                }
+                .tv-panel {
+                    display: flex;
+                    flex-direction: column;
+                    background: rgba(15, 23, 34, 0.82);
+                    border: 1px solid #1e2d3d;
+                    border-radius: 24px;
+                    padding: 22px 24px;
+                    box-shadow: 0 20px 44px -22px rgba(0, 0, 0, 0.85);
+                }
+                .tv-panel-head {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 18px;
+                    padding-bottom: 12px;
+                    border-bottom: 1px solid #1e2d3d;
+                }
+                .tv-panel-title {
+                    font-size: 1.1rem;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                .tv-badge-count {
+                    padding: 4px 12px;
+                    border-radius: 999px;
+                    font-size: 0.8rem;
+                    font-weight: 800;
+                    background: rgba(62, 240, 176, 0.14);
+                    color: #3ef0b0;
+                    border: 1px solid rgba(62, 240, 176, 0.4);
+                }
+
+                /* NOW SERVING CARDS */
+                .tv-serving-list {
+                    display: grid;
+                    gap: 16px;
+                }
+                .tv-serve-card {
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    gap: 22px;
+                    padding: 20px 24px;
+                    border-radius: 20px;
+                    background: linear-gradient(135deg, #0d1b24 0%, #112a26 100%);
+                    border: 1.5px solid rgba(62, 240, 176, 0.65);
+                    box-shadow: inset 0 0 28px rgba(62, 240, 176, 0.1), 0 14px 30px -16px rgba(0, 0, 0, 0.9);
+                    transition: transform 0.3s ease;
+                }
+                .tv-serve-card.is-calling {
+                    animation: tvCallFlash 1.1s ease-in-out 5;
+                }
+                .tv-token-big {
+                    min-width: 165px;
+                    text-align: center;
+                    padding: 14px 18px;
+                    border-radius: 16px;
+                    background: #04080c;
+                    border: 1px solid rgba(62, 240, 176, 0.5);
+                    font-family: "Courier New", ui-monospace, monospace;
+                    font-size: 2.75rem;
+                    font-weight: 900;
+                    letter-spacing: 0.06em;
+                    color: #3ef0b0;
+                    text-shadow: 0 0 18px rgba(62, 240, 176, 0.7);
+                }
+                .tv-serve-info { flex: 1; min-width: 0; }
+                .tv-serve-tag {
+                    display: inline-flex; align-items: center; gap: 6px;
+                    padding: 3px 10px; border-radius: 999px;
+                    font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em;
+                    text-transform: uppercase;
+                    color: #051b14; background: #3ef0b0;
+                    margin-bottom: 8px;
+                }
+                .tv-serve-patient {
+                    font-size: 1.55rem;
+                    font-weight: 800;
+                    color: #ffffff;
+                    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                }
+                .tv-serve-doc {
+                    margin-top: 4px;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    color: #94a3b8;
+                }
+                .tv-serve-doc b { color: #e2e8f0; }
+
+                /* WAITING LIST */
+                .tv-wait-list {
+                    display: grid;
+                    gap: 10px;
+                }
+                .tv-wait-row {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    padding: 12px 16px;
+                    border-radius: 14px;
+                    background: #131d2b;
+                    border: 1px solid #223247;
+                }
+                .tv-wait-row.is-next {
+                    border-color: rgba(255, 176, 32, 0.65);
+                    background: linear-gradient(90deg, rgba(255, 176, 32, 0.12), #131d2b 70%);
+                }
+                .tv-wait-token {
+                    font-family: "Courier New", ui-monospace, monospace;
+                    font-size: 1.45rem;
+                    font-weight: 800;
+                    color: #ffb020;
+                    min-width: 100px;
+                }
+                .tv-wait-main { flex: 1; min-width: 0; }
+                .tv-wait-name { font-size: 1.05rem; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                .tv-wait-doc { font-size: 0.8rem; color: #94a3b8; }
+                .tv-wait-pos {
+                    padding: 4px 11px;
+                    border-radius: 999px;
+                    font-size: 0.72rem;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    text-transform: uppercase;
+                    background: #1e293b;
+                    color: #cbd5e1;
+                }
+                .tv-wait-row.is-next .tv-wait-pos {
+                    background: #ffb020;
+                    color: #111827;
+                }
+
+                /* DOCTORS STRIP */
+                .tv-docs-bar {
+                    margin-top: 18px;
+                    display: flex;
+                    gap: 12px;
+                    overflow-x: auto;
+                    padding-bottom: 4px;
+                }
+                .tv-doc-pill {
+                    flex: 0 0 auto;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    padding: 10px 16px;
+                    border-radius: 14px;
+                    background: rgba(19, 28, 38, 0.9);
+                    border: 1px solid #1e2d3d;
+                }
+                .tv-empty {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 48px 20px;
+                    color: #64748b;
+                    text-align: center;
+                }
+                .tv-empty i { font-size: 2.8rem; margin-bottom: 12px; color: #334155; }
+
+                /* FOOTER TICKER */
+                .tv-footer {
+                    margin-top: 16px;
+                    padding: 10px 20px;
+                    border-radius: 14px;
+                    background: #0d1520;
+                    border: 1px solid #1e2d3d;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    font-size: 0.85rem;
+                    color: #94a3b8;
+                }
+                @media (max-width: 991px) {
+                    .tv-grid { grid-template-columns: 1fr; }
+                }
+            </style>
+
+            <div class="tv-root" id="tvRoot">
+                <!-- TOP HEADER -->
+                <header class="tv-top">
+                    <div class="tv-brand">
+                        <div class="tv-brand-icon"><i class="fa fa-heartbeat" title="Clinic"/></div>
+                        <div>
+                            <div class="tv-brand-title" id="tvClinicName"><t t-out="clinic_name"/></div>
+                            <div class="tv-brand-sub">
+                                <span class="tv-live-dot"/>
+                                <span>LIVE WAITING ROOM QUEUE MONITOR</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tv-controls">
+                        <button type="button" class="tv-btn is-active" id="tvAudioBtn" title="Toggle voice announcement">
+                            <i class="fa fa-volume-up" id="tvAudioIcon" title="Audio"/>
+                            <span id="tvAudioLabel">Voice Call: ON</span>
+                        </button>
+                        <button type="button" class="tv-btn" id="tvTestCallBtn" title="Test chime and voice announcement">
+                            <i class="fa fa-bullhorn" title="Announce"/> Test Call
+                        </button>
+                        <button type="button" class="tv-btn" id="tvFullscreenBtn" title="Toggle Fullscreen">
+                            <i class="fa fa-arrows-alt" title="Fullscreen"/> Fullscreen
+                        </button>
+                        <a href="/odoo" class="tv-btn" title="Back to Clinic Dashboard">
+                            <i class="fa fa-arrow-left" title="Back"/> Back
+                        </a>
+                    </div>
+
+                    <div class="tv-clock-box">
+                        <div class="tv-clock" id="tvClock"><t t-out="time_str"/></div>
+                        <div class="tv-date" id="tvDate"><t t-out="date_str"/></div>
+                    </div>
+                </header>
+
+                <!-- MAIN SPLIT BOARD -->
+                <div class="tv-grid">
+                    <!-- LEFT: NOW SERVING -->
+                    <section class="tv-panel">
+                        <div class="tv-panel-head">
+                            <div class="tv-panel-title" style="color:#3ef0b0;">
+                                <i class="fa fa-bullhorn" title="Now Serving"/> Now Serving In Room
+                            </div>
+                            <span class="tv-badge-count" id="tvServingCount"><t t-out="stats['serving']"/> Active</span>
+                        </div>
+
+                        <div id="tvServingBox" class="tv-serving-list">
+                            <t t-if="now_serving">
+                                <t t-foreach="now_serving" t-as="s">
+                                    <div class="tv-serve-card" t-att-data-token="s['token']">
+                                        <div class="tv-token-big"><t t-out="s['token']"/></div>
+                                        <div class="tv-serve-info">
+                                            <div class="tv-serve-tag"><span class="tv-live-dot" style="background:#051b14;box-shadow:none;"/> PROCEED TO CONSULTATION</div>
+                                            <div class="tv-serve-patient"><t t-out="s['patient']"/></div>
+                                            <div class="tv-serve-doc">
+                                                <i class="fa fa-user-md me-1" title="Doctor"/> <b>Dr. <t t-out="s['doctor']"/></b> · <t t-out="s['specialty']"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </t>
+                            <div t-else="" class="tv-empty">
+                                <i class="fa fa-television" title="No active call"/>
+                                <div class="fw-bold fs-5 text-light">Ready for Next Patient</div>
+                                <div>When a doctor calls a token, it will flash and announce here.</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- RIGHT: UP NEXT IN WAITING LINE -->
+                    <section class="tv-panel">
+                        <div class="tv-panel-head">
+                            <div class="tv-panel-title" style="color:#ffb020;">
+                                <i class="fa fa-users" title="Waiting Queue"/> Waiting Queue (Up Next)
+                            </div>
+                            <span class="tv-badge-count" style="color:#ffb020;border-color:rgba(255,176,32,.4);background:rgba(255,176,32,.12);" id="tvWaitingCount">
+                                <t t-out="stats['waiting']"/> Waiting
+                            </span>
+                        </div>
+
+                        <div id="tvWaitingBox" class="tv-wait-list">
+                            <t t-if="waiting">
+                                <t t-foreach="waiting" t-as="w">
+                                    <div t-attf-class="tv-wait-row #{'is-next' if w['is_next'] else ''}">
+                                        <div class="tv-wait-token"><t t-out="w['token']"/></div>
+                                        <div class="tv-wait-main">
+                                            <div class="tv-wait-name"><t t-out="w['patient']"/></div>
+                                            <div class="tv-wait-doc">Dr. <t t-out="w['doctor']"/> · <t t-out="w['wait_minutes']"/> min wait</div>
+                                        </div>
+                                        <span class="tv-wait-pos">
+                                            <t t-if="w['is_next']">NEXT UP</t>
+                                            <t t-else="">#<t t-out="w['position']"/> in line</t>
+                                        </span>
+                                    </div>
+                                </t>
+                            </t>
+                            <div t-else="" class="tv-empty">
+                                <i class="fa fa-check-circle-o" title="Queue Clear"/>
+                                <div class="fw-bold fs-5 text-light">No Patients Waiting</div>
+                                <div>The waiting room queue is currently clear.</div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- DOCTORS ON DUTY STRIP -->
+                <div class="tv-docs-bar" id="tvDoctorsBox">
+                    <t t-foreach="doctors" t-as="d">
+                        <div class="tv-doc-pill">
+                            <span t-attf-class="tv-live-dot" t-att-style="'background:' + ('#22c55e' if d['available_now'] else '#64748b') + ';box-shadow:none;'"/>
+                            <div>
+                                <div class="fw-bold small text-white">Dr. <t t-out="d['name']"/></div>
+                                <div style="font-size:0.72rem;color:#94a3b8;"><t t-out="d['specialty']"/> · <t t-out="d['availability_label']"/></div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- FOOTER -->
+                <footer class="tv-footer">
+                    <div>
+                        <i class="fa fa-info-circle me-2 text-info" title="Info"/>
+                        Please keep your token number ready. When your token is called, proceed to your doctor's consultation room.
+                    </div>
+                    <div id="tvDoneStat">Completed Today: <b><t t-out="stats['done_today']"/></b></div>
+                </footer>
+            </div>
+
+            <script>
+            (function () {
+                'use strict';
+                var audioEnabled = true;
+                var knownServingTokens = {};
+
+                // Seed initial tokens so first page load doesn't re-announce all existing ones
+                document.querySelectorAll('#tvServingBox [data-token]').forEach(function (el) {
+                    knownServingTokens[el.getAttribute('data-token')] = true;
+                });
+
+                function playChime() {
+                    if (!audioEnabled) return;
+                    try {
+                        var Ctx = window.AudioContext || window.webkitAudioContext;
+                        if (!Ctx) return;
+                        var ctx = new Ctx();
+                        var notes = [587.33, 880.0]; // D5 -> A5 pleasant hospital chime
+                        notes.forEach(function (freq, idx) {
+                            var osc = ctx.createOscillator();
+                            var gain = ctx.createGain();
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.28);
+                            gain.gain.setValueAtTime(0.001, ctx.currentTime + idx * 0.28);
+                            gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + idx * 0.28 + 0.04);
+                            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.28 + 0.55);
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start(ctx.currentTime + idx * 0.28);
+                            osc.stop(ctx.currentTime + idx * 0.28 + 0.6);
+                        });
+                    } catch (e) {}
+                }
+
+                function announceToken(token, patient, doctor) {
+                    playChime();
+                    if (!audioEnabled || !('speechSynthesis' in window)) return;
+                    setTimeout(function () {
+                        try {
+                            window.speechSynthesis.cancel();
+                            var msg = new SpeechSynthesisUtterance(
+                                'Attention please. Token ' + token + ', ' + (patient || '') + ', please proceed to Doctor ' + (doctor || '')
+                            );
+                            msg.rate = 0.95;
+                            msg.pitch = 1.0;
+                            window.speechSynthesis.speak(msg);
+                        } catch (e) {}
+                    }, 650);
+                }
+
+                function esc(s) {
+                    var d = document.createElement('div');
+                    d.textContent = s || '';
+                    return d.innerHTML;
+                }
+
+                function renderBoard(data) {
+                    if (!data) return;
+                    document.getElementById('tvClock').textContent = data.time_str || '';
+                    document.getElementById('tvDate').textContent = data.date_str || '';
+                    document.getElementById('tvServingCount').textContent = (data.stats.serving || 0) + ' Active';
+                    document.getElementById('tvWaitingCount').textContent = (data.stats.waiting || 0) + ' Waiting';
+                    document.getElementById('tvDoneStat').innerHTML = 'Completed Today: <b>' + (data.stats.done_today || 0) + '</b>';
+
+                    var sBox = document.getElementById('tvServingBox');
+                    var newCall = null;
+                    if (data.now_serving &amp;&amp; data.now_serving.length) {
+                        sBox.innerHTML = data.now_serving.map(function (s) {
+                            var isNew = !knownServingTokens[s.token];
+                            if (isNew &amp;&amp; !newCall) {
+                                newCall = s;
+                            }
+                            knownServingTokens[s.token] = true;
+                            return (
+                                '&lt;div class="tv-serve-card ' + (isNew ? 'is-calling' : '') + '" data-token="' + esc(s.token) + '"&gt;' +
+                                    '&lt;div class="tv-token-big"&gt;' + esc(s.token) + '&lt;/div&gt;' +
+                                    '&lt;div class="tv-serve-info"&gt;' +
+                                        '&lt;div class="tv-serve-tag"&gt;&lt;span class="tv-live-dot" style="background:#051b14;box-shadow:none;"&gt;&lt;/span&gt; PROCEED TO CONSULTATION&lt;/div&gt;' +
+                                        '&lt;div class="tv-serve-patient"&gt;' + esc(s.patient) + '&lt;/div&gt;' +
+                                        '&lt;div class="tv-serve-doc"&gt;&lt;i class="fa fa-user-md me-1"&gt;&lt;/i&gt; &lt;b&gt;Dr. ' + esc(s.doctor) + '&lt;/b&gt; · ' + esc(s.specialty) + '&lt;/div&gt;' +
+                                    '&lt;/div&gt;' +
+                                '&lt;/div&gt;'
+                            );
+                        }).join('');
+                    } else {
+                        sBox.innerHTML = (
+                            '&lt;div class="tv-empty"&gt;' +
+                                '&lt;i class="fa fa-television"&gt;&lt;/i&gt;' +
+                                '&lt;div class="fw-bold fs-5 text-light"&gt;Ready for Next Patient&lt;/div&gt;' +
+                                '&lt;div&gt;When a doctor calls a token, it will flash and announce here.&lt;/div&gt;' +
+                            '&lt;/div&gt;'
+                        );
+                    }
+
+                    if (newCall) {
+                        announceToken(newCall.token, newCall.patient, newCall.doctor);
+                    }
+
+                    var wBox = document.getElementById('tvWaitingBox');
+                    if (data.waiting &amp;&amp; data.waiting.length) {
+                        wBox.innerHTML = data.waiting.map(function (w) {
+                            return (
+                                '&lt;div class="tv-wait-row ' + (w.is_next ? 'is-next' : '') + '"&gt;' +
+                                    '&lt;div class="tv-wait-token"&gt;' + esc(w.token) + '&lt;/div&gt;' +
+                                    '&lt;div class="tv-wait-main"&gt;' +
+                                        '&lt;div class="tv-wait-name"&gt;' + esc(w.patient) + '&lt;/div&gt;' +
+                                        '&lt;div class="tv-wait-doc"&gt;Dr. ' + esc(w.doctor) + ' · ' + (w.wait_minutes || 0) + ' min wait&lt;/div&gt;' +
+                                    '&lt;/div&gt;' +
+                                    '&lt;span class="tv-wait-pos"&gt;' + (w.is_next ? 'NEXT UP' : ('#' + w.position + ' in line')) + '&lt;/span&gt;' +
+                                '&lt;/div&gt;'
+                            );
+                        }).join('');
+                    } else {
+                        wBox.innerHTML = (
+                            '&lt;div class="tv-empty"&gt;' +
+                                '&lt;i class="fa fa-check-circle-o"&gt;&lt;/i&gt;' +
+                                '&lt;div class="fw-bold fs-5 text-light"&gt;No Patients Waiting&lt;/div&gt;' +
+                                '&lt;div&gt;The waiting room queue is currently clear.&lt;/div&gt;' +
+                            '&lt;/div&gt;'
+                        );
+                    }
+                }
+
+                function poll() {
+                    fetch('/clinic/tv/data', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {}}),
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) { if (res &amp;&amp; res.result) renderBoard(res.result); })
+                    .catch(function () {});
+                }
+
+                setInterval(poll, 4000);
+
+                // Controls
+                document.getElementById('tvAudioBtn').addEventListener('click', function () {
+                    audioEnabled = !audioEnabled;
+                    this.classList.toggle('is-active', audioEnabled);
+                    document.getElementById('tvAudioIcon').className = audioEnabled ? 'fa fa-volume-up' : 'fa fa-volume-off';
+                    document.getElementById('tvAudioLabel').textContent = audioEnabled ? 'Voice Call: ON' : 'Voice Call: MUTED';
+                });
+
+                document.getElementById('tvTestCallBtn').addEventListener('click', function () {
+                    var firstCard = document.querySelector('#tvServingBox .tv-serve-card');
+                    if (firstCard) {
+                        firstCard.classList.remove('is-calling');
+                        void firstCard.offsetWidth;
+                        firstCard.classList.add('is-calling');
+                        var tok = firstCard.getAttribute('data-token') || 'T-001';
+                        var pat = (firstCard.querySelector('.tv-serve-patient') || {}).textContent || 'Patient';
+                        var doc = (firstCard.querySelector('.tv-serve-doc b') || {}).textContent || 'Duty Doctor';
+                        announceToken(tok, pat, doc.replace(/^Dr\.\s*/, ''));
+                    } else {
+                        announceToken('T-001', 'Sample Patient', 'Duty Doctor');
+                    }
+                });
+
+                document.getElementById('tvFullscreenBtn').addEventListener('click', function () {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(function () {});
+                    } else {
+                        document.exitFullscreen().catch(function () {});
+                    }
+                });
+            })();
+            </script>
+        </t>
+    </template>
+</odoo>

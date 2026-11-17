@@ -77,4 +77,75 @@
     </record>
 
     <menuitem id="menu_clinic_medicine" name="Drug Catalog" parent="menu_clinic_config" action="action_clinic_medicine" sequence="10"/>
+
+    <!-- ============================================================ -->
+    <!-- RX PROTOCOL TEMPLATES                                        -->
+    <!-- ============================================================ -->
+    <record id="view_rx_template_list" model="ir.ui.view">
+        <field name="name">clinic.rx.template.list</field>
+        <field name="model">clinic.rx.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="specialty" widget="badge"/>
+                <field name="diagnosis"/>
+                <field name="line_count" string="Medicines"/>
+                <field name="follow_up_days"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_rx_template_form" model="ir.ui.view">
+        <field name="name">clinic.rx.template.form</field>
+        <field name="model">clinic.rx.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. Viral Fever &amp; URI"/></h1>
+                    </div>
+                    <group>
+                        <group string="Protocol Info">
+                            <field name="specialty"/>
+                            <field name="follow_up_days"/>
+                        </group>
+                        <group string="Clinical">
+                            <field name="chief_complaint" placeholder="Typical symptoms..."/>
+                            <field name="diagnosis" placeholder="Standard diagnosis..."/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Standard Prescription (Rx)">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="medicine_id" string="From catalog" options="{'no_quick_create': True}"/>
+                                    <field name="drug_name" required="1"/>
+                                    <field name="strength"/>
+                                    <field name="form"/>
+                                    <field name="dosage"/>
+                                    <field name="duration"/>
+                                    <field name="instructions"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Standard Advice">
+                            <field name="advice" placeholder="Standard patient instructions and lifestyle advice..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_clinic_rx_template" model="ir.actions.act_window">
+        <field name="name">Rx Protocols</field>
+        <field name="res_model">clinic.rx.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_clinic_rx_template" name="Rx Protocols" parent="menu_clinic_config" action="action_clinic_rx_template" sequence="20"/>
 </odoo>

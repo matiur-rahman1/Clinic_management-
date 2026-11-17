@@ -49,6 +49,10 @@ class ClinicPatient(models.Model):
     currency_id = fields.Many2one('res.currency', compute='_compute_visit_stats')
     amount_due = fields.Monetary(string='Amount Due', compute='_compute_visit_stats',
                                  currency_field='currency_id')
+    last_bp = fields.Char(string='Latest BP', compute='_compute_visit_stats')
+    last_bmi = fields.Float(string='Latest BMI', compute='_compute_visit_stats', digits=(16, 1))
+    last_weight = fields.Float(string='Latest Weight (kg)', compute='_compute_visit_stats', digits=(16, 1))
+    last_spo2 = fields.Integer(string='Latest SpO₂ (%)', compute='_compute_visit_stats')
 
     # ------------------------------------------------------------------
     # Computes
@@ -104,6 +108,13 @@ class ClinicPatient(models.Model):
             rec.next_appointment = upcoming.get(rec.id, False)
             rec.currency_id = currency
             rec.amount_due = due.get(rec.partner_id.id, 0.0)
+            vital_appt = rec.appointment_ids.filtered(
+                lambda a: a.state != 'cancelled' and (a.bp_systolic or a.bmi or a.weight or a.spo2)
+            ).sorted('appointment_date', reverse=True)[:1]
+            rec.last_bp = vital_appt.bp_display if vital_appt else False
+            rec.last_bmi = vital_appt.bmi if vital_appt else 0.0
+            rec.last_weight = vital_appt.weight if vital_appt else 0.0
+            rec.last_spo2 = vital_appt.spo2 if vital_appt else 0
 
     # ------------------------------------------------------------------
     # ORM

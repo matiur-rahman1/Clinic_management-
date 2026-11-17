@@ -78,3 +78,76 @@ class WebsiteAppointment(http.Controller):
         })
         return request.redirect(
             '/book-appointment?success=Your+appointment+has+been+booked+successfully!+We+will+contact+you+soon.')
+
+    # ------------------------------------------------------------------
+    # Live Waiting Room TV Display (Lobby Digital Signage + Voice Call)
+    # ------------------------------------------------------------------
+    def _get_tv_payload(self):
+        env = request.env
+        Doctor = env['clinic.doctor'].sudo()
+        Queue = env['clinic.queue'].sudo()
+        start, end, now_local = Doctor._today_range_utc()
+
+        today_domain = [('check_in_time', '>=', start), ('check_in_time', '<', end)]
+        serving_recs = Queue.search(
+            [('state', '=', 'in_consultation')] + today_domain,
+            order='write_date desc, check_in_time asc', limit=6
+        )
+        waiting_recs = Queue.search(
+            [('state', '=', 'waiting')] + today_domain,
+            order='check_in_time asc, id asc', limit=12
+        )
+        done_count = Queue.search_count([('state', '=', 'done')] + today_domain)
+
+        spec_map = dict(Doctor._fields['specialty'].selection)
+        now_serving = [{
+            'id': q.id,
+            'token': q.token_number,
+            'patient': q.patient_id.name,
+            'initials': q.patient_initials,
+            'doctor': q.doctor_id.name or 'Duty Doctor',
+            'specialty': spec_map.get(q.doctor_id.specialty, 'General Consultation') if q.doctor_id else 'Consultation',
+            'time_label': q.time_label,
+        } for q in serving_recs]
+
+        waiting = [{
+            'id': q.id,
+            'token': q.token_number,
+            'patient': q.patient_id.name,
+            'initials': q.patient_initials,
+            'doctor': q.doctor_id.name or 'Any Doctor',
+            'position': q.queue_position,
+            'wait_minutes': q.wait_minutes,
+            'is_next': q.is_next,
+        } for q in waiting_recs]
+
+        doctors = [{
+            'id': d.id,
+            'name': d.name,
+            'specialty': spec_map.get(d.specialty, ''),
+            'available_now': d.available_now,
+            'availability_label': d.availability_label,
+            'today_count': d.today_count,
+        } for d in Doctor.search([], order='name asc')]
+
+        return {
+            'clinic_name': env.company.name or 'Clinic Management',
+            'time_str': now_local.strftime('%I:%M:%S %p').lstrip('0'),
+            'date_str': now_local.strftime('%A, %d %B %Y'),
+            'now_serving': now_serving,
+            'waiting': waiting,
+            'doctors': doctors,
+            'stats': {
+                'serving': len(now_serving),
+                'waiting': len(waiting),
+                'done_today': done_count,
+            },
+        }
+
+    @http.route('/clinic/tv', type='http', auth="user", website=True, sitemap=False)
+    def clinic_tv_display(self, **kw):
+        return request.render('clinic_management.clinic_tv_display', self._get_tv_payload())
+
+    @http.route('/clinic/tv/data', type='json', auth="user")
+    def clinic_tv_data(self):
+        return self._get_tv_payload()
