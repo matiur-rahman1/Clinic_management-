@@ -26,6 +26,10 @@ A free, open-source **Odoo 18** module that runs a small clinic end to end: publ
 - 💰 **Invoicing** through Odoo Accounting.
 - 📊 **Dashboard** with KPIs, today's schedule and upcoming follow-ups.
 - ⏰ **Automatic appointment reminders** (email template + scheduled action).
+- 🩺 **Vitals and triage:** BP, pulse, temperature, SpO₂, weight and height with automatic BMI category and an abnormal-vitals alert banner.
+- ⚠️ **Drug-allergy guard:** warns when a prescribed drug matches the patient's recorded allergies.
+- 📋 **Rx protocols:** apply a saved protocol (diagnosis, advice, medicines, follow-up) in one click, or save any prescription as a protocol.
+- 📺 **Lobby TV display** at `/clinic/tv`: live "now serving" and waiting queue with a chime and voice announcement.
 - 🔒 **Access groups:** receptionist and doctor.
 
 ## Requirements
@@ -59,19 +63,61 @@ python odoo-bin -c odoo.conf -d <your_database> -u clinic_management
 4. Log in at `/clinic/login` to see the patient portal at `/my/clinic`.
 5. In the backend, open the appointment, write the prescription, press **Print Rx**.
 
+## Screenshots
+
+> Real captures of the running Odoo 18 app (headless Chrome, 1440×900). Patient names and queue entries are **sample data** created only for the captures.
+
+### Dashboard
+![Clinic dashboard](screenshots/dashboard.png)
+
+### Appointment: vitals, BMI, abnormal-vitals and drug-allergy alerts
+![Appointment form](screenshots/appointment_form.png)
+
+### Prescription (Rx) with one-click protocols
+![Prescription tab](screenshots/appointment_rx.png)
+
+### Appointments
+![Appointments kanban](screenshots/appointments_kanban.png)
+
+### Patients and Doctors
+![Patients kanban](screenshots/patients_kanban.png)
+![Doctors kanban](screenshots/doctors_kanban.png)
+
+### Patient queue and lobby TV display (`/clinic/tv`)
+![Patient queue](screenshots/queue.png)
+![Lobby TV display](screenshots/tv_display.png)
+
+### Laboratory and Rx protocols
+![Lab tests](screenshots/lab_tests.png)
+![Rx protocols](screenshots/rx_protocols.png)
+
+### Public website: online booking and patient login
+![Online booking](screenshots/booking_page.png)
+![Patient login](screenshots/patient_login.png)
+
+## Testing
+
+Automated tests live in `tests/test_clinic.py` (9 tests): sequences and billing contact, doctor double-booking prevention, appointment/queue workflow, vitals and BMI, abnormal-vitals alerts, drug-allergy guard, Rx protocols, dashboard data and free-slot availability.
+
+```bash
+python odoo-bin -c odoo.conf -d <your_database> -u clinic_management --test-enable --test-tags /clinic_management --stop-after-init
+```
+
 ## Project structure
 
 ```
 clinic_management/
 ├── __manifest__.py
-├── controllers/     # website booking, patient portal, login, Rx download
+├── controllers/     # website booking, patient portal, login, Rx download, lobby TV
 ├── models/          # patient, doctor, schedule, appointment, queue, lab test,
-│                    # drug catalog, prescription, dashboard, invoice link
-├── views/           # backend views, portal and website templates
+│                    # drug catalog, prescription, Rx templates, dashboard, invoice link
+├── views/           # backend views, portal, website and TV templates
 ├── reports/         # appointment slip and prescription (Rx) PDFs
 ├── security/        # groups, access rights, portal rules
-├── data/            # sequences, reminder email and cron
+├── data/            # sequences, reminder email and cron, Rx protocol samples
 ├── migrations/      # database migrations between versions
+├── tests/           # automated tests
+├── screenshots/     # README images
 └── static/src/      # dashboard (OWL), slot picker, styles
 ```
 
